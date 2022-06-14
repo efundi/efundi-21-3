@@ -30,5 +30,17 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.msgcntr</groupId>
+            <artifactId>messageforums-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.assignment</groupId>
+            <artifactId>sakai-assignment-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.samigo</groupId>
+            <artifactId>samigo-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

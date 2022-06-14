@@ -20,8 +20,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.sakaiproject.authz.cover.SecurityService;
 import org.sakaiproject.lessonbuildertool.SimplePage;
+import org.sakaiproject.lessonbuildertool.docxexport.DocxExport;
+import org.sakaiproject.lessonbuildertool.epubexport.EpubExport;
 import org.sakaiproject.lessonbuildertool.tool.view.ExportCCViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportEpubViewParameters;
+import org.sakaiproject.tool.api.ToolSession;
+import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.tool.cover.ToolManager;
+import org.sakaiproject.lessonbuildertool.docximport.DocxImport;
+import org.sakaiproject.lessonbuildertool.pdfimport.PdfImport;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportPdfViewParameters;
+import org.sakaiproject.lessonbuildertool.util.ApplicationContextProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import uk.org.ponder.rsf.viewstate.ViewParameters;
@@ -49,7 +60,6 @@ public class ReportHandlerHook {
     */
    public boolean handle() {
       if (viewparams instanceof ExportCCViewParameters) {
-      ExportCCViewParameters parameters = ((ExportCCViewParameters) viewparams);
 	  String siteId = ToolManager.getCurrentPlacement().getContext();
 	  String ref = "/site/" + siteId;
 	  boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
@@ -59,6 +69,7 @@ public class ReportHandlerHook {
 	  if (!ok) return false;
 
           try {
+          	  ExportCCViewParameters parameters = ((ExportCCViewParameters) viewparams);
               response.sendRedirect("/lessonbuilder-tool/ccexport?" +
                       "version=" + parameters.getVersion() + "&" +
                       "bank=" + parameters.getBank() + "&" +
@@ -67,6 +78,54 @@ public class ReportHandlerHook {
               log.warn("Could not send redirect, {}", ioe.toString());
               return false;
           }
+          return true;
+      } else if(viewparams instanceof ExportEpubViewParameters){
+        String siteId = ToolManager.getCurrentPlacement().getContext();
+        String ref = "/site/" + siteId;
+        boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+        if (!ok)
+            return false;
+
+          log.debug("Handing viewparams and response off to the reportExporter");
+        EpubExport epubExport = (EpubExport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.epubexport.EpubExport");
+          //EpubExport epubExport = new EpubExport();
+        epubExport.doExport(siteId, response, (ExportEpubViewParameters)viewparams);
+          return true;
+      }else if(viewparams instanceof ExportDocxViewParameters){
+        String siteId = ToolManager.getCurrentPlacement().getContext();
+        String ref = "/site/" + siteId;
+        boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+        if (!ok)
+            return false;
+
+          log.debug("Handing viewparams and response off to the reportExporter");
+          log.debug("Export Docx");
+          DocxExport docxExport = (DocxExport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.docxexport.DocxExport");
+          docxExport.doExport(siteId, response, (ExportDocxViewParameters)viewparams);
+          return true;
+      }else if(viewparams instanceof ImportDocxViewParameters){
+        String siteId = ToolManager.getCurrentPlacement().getContext();
+        String ref = "/site/" + siteId;
+        boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+        if (!ok)
+            return false;
+
+          log.debug("Handing viewparams and response off to the reportImporter");
+          log.debug("Import Docx");
+//          DocxImport docxImport = (DocxImport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.docximport.DocxImport");
+//          docxImport.doImport(siteId, response, (ImportDocxViewParameters)viewparams);
+          return true;
+      } else if(viewparams instanceof ImportPdfViewParameters){
+        String siteId = ToolManager.getCurrentPlacement().getContext();
+        String ref = "/site/" + siteId;
+        boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+        if (!ok)
+            return false;
+
+          log.debug("Handing viewparams and response off to the reportImporter");
+          log.debug("Import Pdf");
+          PdfImport pdfImport = (PdfImport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.pdfimport.PdfImport");
+          pdfImport.doImport(siteId, response, (ImportPdfViewParameters)viewparams);
           return true;
       }
       return false;
