@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+ 	
+	<bean id="appProperties"
+	    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+	    <property name="locations">
+			<list>
+  				<value>classpath:slink.properties</value>
+  			</list>
+  		</property>
+  		<property name="ignoreUnresolvablePlaceholders" value="false"/>
+	</bean>
+	
+	<bean id="settingsProperties" class="edu.nwu.sakaistudentlink.services.SettingsProperties" init-method="init"/>
+	
+	<bean id="sLinkService" class="edu.nwu.sakaistudentlink.services.SLinkServiceImpl">
+		<property name="moduleSearch" ref="moduleSearch" />
+		<property name="moduleLink" ref="moduleLink" />
+	</bean>	
+	
+	<bean id="moduleSearch" class="edu.nwu.sakaistudentlink.services.ModuleSearch" scope="singleton">
+		<property name="settingsProperties" ref="settingsProperties" />
+		<property name="connectionManager" ref="connectionManager" />
+	</bean>	
+	
+	<bean id="moduleLink" class="edu.nwu.sakaistudentlink.services.ModuleLink" scope="singleton">
+		<property name="settingsProperties" ref="settingsProperties" />
+		<property name="connectionManager" ref="connectionManager" />
+		<property name="courseMgmtWSHandler" ref="courseManagementWSHandler" />
+	</bean>	
+	
+	<bean id="courseManagementWSHandler" class="edu.nwu.sakaistudentlink.services.CourseManagementWSHandler" scope="singleton">
+		<property name="settingsProperties" ref="settingsProperties" />
+		<property name="connectionManager" ref="connectionManager" />
+	</bean>
+	
+	<bean id="connectionManager" class="edu.nwu.sakaistudentlink.services.ConnectionManager">
+	</bean>
+	
+	<bean id="eFundiDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	    <property name="driverClassName"><value>${cm.jdbc.driver}</value></property>     
+	    <property name="url"><value>${cm.jdbc.url}</value></property>
+	    <property name="username"><value>${cm.jdbc.user}</value></property>
+	    <property name="password"><value>${cm.jdbc.password}</value></property>
+	</bean> 
+	
+</beans>
