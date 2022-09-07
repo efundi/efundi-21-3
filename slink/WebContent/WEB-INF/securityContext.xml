@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/security 
+       http://www.springframework.org/schema/security/spring-security.xsd">
+       
+    <import resource="application.xml"/>
+
+	<sec:http use-expressions="true" entry-point-ref="casEntryPoint">
+		<sec:intercept-url pattern="/slinkMain" access="isAuthenticated()" />
+		<!-- sec:intercept-url pattern="/**" access="isAuthenticated()" /-->
+		<sec:custom-filter position="CAS_FILTER" ref="casFilter" />
+		<sec:custom-filter position="SWITCH_USER_FILTER" ref="switchUserProcessingFilter" />
+		<sec:intercept-url pattern="/becomeUser"/>
+		
+		<!-- Handle CAS logout request from the browser (on /j_spring_security_logout): -->
+		<sec:logout />
+		<!-- Handle CAS logout directly from the CAS server: -->
+		<sec:custom-filter before="CAS_FILTER" ref="singleLogoutFilter" />
+		
+		<sec:custom-filter before="LOGOUT_FILTER" ref="requestSingleLogoutFilter"/>
+	</sec:http>
+
+	<bean id="casFilter"
+		class="org.springframework.security.cas.web.CasAuthenticationFilter">
+		<property name="authenticationManager" ref="authenticationManager" />
+	</bean>
+
+	<bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter" />
+	
+	<!-- This filter redirects to the CAS Server to signal Single Logout should be performed -->
+	<bean id="requestSingleLogoutFilter"
+	      class="org.springframework.security.web.authentication.logout.LogoutFilter">
+	  <constructor-arg value="${nwu.cas.url}/cas/logout"/>
+	  <constructor-arg>
+	    <bean class=
+	          "org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
+	  </constructor-arg>
+	  <property name="filterProcessesUrl" value="/j_spring_cas_security_logout"/>
+	</bean>
+
+	<bean id="casEntryPoint"
+		class="org.springframework.security.cas.web.CasAuthenticationEntryPoint">
+		<!-- Change with your own CAS server -->
+		<property name="loginUrl"
+			value="${nwu.cas.url}/cas/login" />
+		<property name="serviceProperties" ref="serviceProperties" />
+
+	</bean>
+	<bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties">
+		<!-- Change with your own host name -->
+		<property name="service"
+			value="${slink.service.url}/slink/j_spring_cas_security_check" />
+	</bean>
+	
+	<bean id="switchUserProcessingFilter" class="org.springframework.security.web.authentication.switchuser.SwitchUserFilter">
+	    <property name="userDetailsService" ref="userDetailsService" />
+	    <property name="switchUserUrl" value="/becomeUser" />
+	    <property name="targetUrl" value="/getUserDetail" />
+	 </bean>
+
+	<sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider ref="casAuthenticationProvider" />
+	</sec:authentication-manager>
+
+	<bean id="casAuthenticationProvider"
+		class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
+		<property name="authenticationUserDetailsService">
+			<bean
+				class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+				<constructor-arg ref="userDetailsService" />
+			</bean>
+		</property>
+		<property name="serviceProperties" ref="serviceProperties" />
+		<property name="ticketValidator">
+			<bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+				<!-- Change with your own CAS server -->
+				<constructor-arg index="0"
+					value="${nwu.cas.url}/cas" />
+			</bean>
+		</property>
+		<property name="key" value="an_id_for_this_auth_provider_only" />
+	</bean>
+	
+	<sec:ldap-user-service id="userDetailsService" server-ref="ldapServer" 
+            group-search-base="${za.globed.authenticator.group.base}" group-role-attribute="cn"
+            group-search-filter="(member={0})"
+            user-search-base="${za.globed.authenticator.basedn}"
+            user-search-filter="(&amp;(cn={0})${ldap.user.search.filter})"
+            user-details-class="inetOrgPerson"/>
+
+	<sec:ldap-server id="ldapServer" url="${java.naming.provider.url}"
+                 manager-dn="${za.globed.authenticator.user}"
+                 manager-password="${za.globed.authenticator.password}" />
+                 
+</beans>

@@ -1,0 +1,45 @@
+
+.form-signin .form-control {
+	-moz-box-sizing: border-box;
+	font-size: 16px;
+	height: auto;
+	padding: 10px;
+	position: relative;
+}
+
+.slink-content {
+    padding-bottom: 60px;
+    padding-top: 50px;
+}
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+.navbar-brand {
+	height: 114px;
+    padding: 0px;
+}
+
+.navbar-brand img {
+	max-height: 100%;
+    height: auto;
+    padding-bottom: 18px;
+    padding-left: 18px;
+    padding-top: 18px;
+    width: 300px;
+}
+
+.navbar-default {
+    background-color: #6f0579;
+    border-color: #6f0579;
+}
+
+.navbar-fixed-bottom {
+  z-index: 500;
+}
+
+table {
+    table-layout: fixed;
+    word-wrap: break-word;
+}
