@@ -76,6 +76,7 @@ import org.sakaiproject.lessonbuildertool.cc.CartridgeLoader;
 import org.sakaiproject.lessonbuildertool.cc.Parser;
 import org.sakaiproject.lessonbuildertool.cc.PrintHandler;
 import org.sakaiproject.lessonbuildertool.cc.ZipLoader;
+import org.sakaiproject.lessonbuildertool.docximport.DocxImport;
 import org.sakaiproject.lessonbuildertool.model.SimplePageToolDao;
 import org.sakaiproject.lessonbuildertool.service.AjaxServer;
 import org.sakaiproject.lessonbuildertool.service.AssignmentEntity;
@@ -92,6 +93,7 @@ import org.sakaiproject.lessonbuildertool.tool.producers.PagePickerProducer;
 import org.sakaiproject.lessonbuildertool.tool.producers.ShowItemProducer;
 import org.sakaiproject.lessonbuildertool.tool.producers.ShowPageProducer;
 import org.sakaiproject.lessonbuildertool.tool.view.GeneralViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportDocxViewParameters;
 import org.sakaiproject.lti.api.LTIService;
 import org.sakaiproject.memory.api.Cache;
 import org.sakaiproject.memory.api.MemoryService;
@@ -8971,4 +8973,81 @@ public class SimplePageBean {
 		}
 		return status;
 	}
+	public void importDocx() {
+        if (!canEditPage()) {
+            return;
+        }
+        MultipartFile file = null;
+        if (multipartMap.size() > 0) {
+            // user specified a file, create it
+            file = multipartMap.values().iterator().next();
+        }
+        if (file != null) {
+            if (!uploadSizeOk(file)) {
+                return;
+            }
+            File docx = null;
+            File root = null;
+            try {
+                docx = File.createTempFile("docxloader", "file");
+                root = File.createTempFile("docxloader", "root");
+                if (root.exists()) {
+                    if (!root.delete()) {
+                        setErrMessage("unable to delete temp file for load");
+                        return;
+                    }
+                }
+                if (!root.mkdir()) {
+                    setErrMessage("unable to create temp directory for load");
+                    return;
+                }
+                BufferedInputStream bis = new BufferedInputStream(file.getInputStream());
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(docx));
+                byte[] buffer = new byte[8096];
+                int n = 0;
+                while ((n = bis.read(buffer, 0, 8096)) >= 0) {
+                    if (n > 0) {
+                        bos.write(buffer, 0, n);
+                    }
+                }
+                bis.close();
+                bos.close();
+                DocxImport di = new DocxImport();
+                di.setContentHostingService(contentHostingService);
+                di.setMessageLocator(messageLocator);
+                ImportDocxViewParameters idvp = new ImportDocxViewParameters(ShowPageProducer.VIEW_ID);
+                idvp.setFileName(file.getName());
+                idvp.setOriginalFileName(file.getOriginalFilename());
+                di.doImport(docx, httpServletResponse, idvp, this, simplePageToolDao);
+            } catch (Exception e) {
+                setErrKey("simplepage.cc-error", "");
+            } finally {
+                if (docx != null) {
+                    try {
+                        deleteRecursive(docx);
+                    } catch (Exception e) {
+                        log.error("Delete DOCX: Unable to delete temp files created during this step" , e);
+                    }
+                }
+                try {
+                    deleteRecursive(root);
+                } catch (Exception e) {
+                    log.error("Delete Root: Unable to delete temp files created during this step" , e);
+                }
+            }
+        }
+        GeneralViewParameters view = new GeneralViewParameters(ShowPageProducer.VIEW_ID);
+    }
+
+    public void exportEpub(){
+        GeneralViewParameters view = new GeneralViewParameters(ShowPageProducer.VIEW_ID);
+    }
+
+    public void exportDocx(){
+        GeneralViewParameters view = new GeneralViewParameters(ShowPageProducer.VIEW_ID);
+    }
+
+    public void exportError(){
+        GeneralViewParameters view = new GeneralViewParameters(ShowPageProducer.VIEW_ID);
+    }
 }
