@@ -121,8 +121,10 @@
                 <module>webjars</module>
                 <module>webservices</module>
                 <module>wicket</module>
-                <module>blogwow</module>
-                <module>scorm</module>
+                <module>blogwow2</module>
+                <module>scorm2</module>
+                <module>cm-scheduler-base</module>
+                <module>cmprovider</module>
             </modules>
         </profile>
         <profile>
@@ -212,8 +214,10 @@
                 <module>webservices</module>
                 <module>wicket</module>
                 <module>yaft</module>
-                <module>blogwow</module>
-                <module>scorm</module>
+                <module>blogwow2</module>
+                <module>scorm2</module>
+                <module>cmprovider</module>
+                <module>cm-scheduler-base</module>
             </modules>
         </profile>
 
