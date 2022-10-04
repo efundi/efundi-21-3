@@ -40,6 +40,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+            	<module>nwu-gradebook-ws</module>
                 <module>master</module>
                 <module>admin-tools</module>
                 <module>admin-su</module>
@@ -126,6 +127,7 @@
         <profile>
             <id>experimental</id>
             <modules>
+            	<module>nwu-gradebook-ws</module>
                 <module>master</module>
                 <module>access</module>
                 <module>admin-su</module>

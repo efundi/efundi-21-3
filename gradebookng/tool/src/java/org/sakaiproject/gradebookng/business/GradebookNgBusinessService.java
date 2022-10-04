@@ -192,6 +192,7 @@ public class GradebookNgBusinessService {
 	public static final String ASSIGNMENT_ORDER_PROP = "gbng_assignment_order";
 	public static final String ICON_SAKAI = "icon-sakai--";
 	public static final String ALL = "all";
+	public static final String MPS_GRADEBOOK_INTEGRATION_ALLOWED = "mps_gradebook_integration_allowed";
 
 	/**
 	 * Get a list of all users in the current site that can have grades
@@ -1151,6 +1152,29 @@ public class GradebookNgBusinessService {
 		}
 
 		return userSections;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public Map<String, List<String>> getSectionUsersForCurrentSite() {
+		Map<String, List<String>> sectionEnrollmentsMap = new HashMap<>();
+		List<String> userIdList = null;
+		for (CourseSection cs : sectionManager.getSections(getCurrentSiteId())) {
+
+			List<EnrollmentRecord> enrollmentRecordList = sectionManager.getSectionEnrollmentsForNWU(cs.getUuid());
+			if(enrollmentRecordList != null && !enrollmentRecordList.isEmpty()) {
+
+				userIdList = new ArrayList<String>();
+				for (EnrollmentRecord er : enrollmentRecordList) {
+					String userId = er.getUser().getDisplayId();
+					userIdList.add(userId);
+				}
+				sectionEnrollmentsMap.put(cs.getTitle(), userIdList);
+			}
+		}
+		return sectionEnrollmentsMap;
 	}
 
 	/**
@@ -2926,6 +2950,26 @@ public class GradebookNgBusinessService {
 		}
 		
 		return this.securityService.unlock("gradebook.editAssignments", siteRef);
+	}
+	
+	/**
+	 * Check if current user has the property "mps_gradebook_integration_allowed" added or not
+	 *
+	 * @return true if yes, false if no.
+	 */
+	public boolean isUserAbleToViewMPS(){
+		boolean mpsGBIntegrationAllowed = false;
+
+		try {
+			String propertyVal = this.siteService.getSite(getCurrentSiteId()).getProperties().getProperty(GradebookNgBusinessService.MPS_GRADEBOOK_INTEGRATION_ALLOWED);
+			if(propertyVal != null) {
+				mpsGBIntegrationAllowed = Boolean.valueOf(propertyVal).booleanValue();
+			}			
+		} catch (final IdUnusedException e) {
+			throw new GbException(e);
+		}
+
+		return isUserAbleToEditAssessments() && mpsGBIntegrationAllowed;
 	}
 
 	/**

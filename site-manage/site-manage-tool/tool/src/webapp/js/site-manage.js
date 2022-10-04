@@ -1368,6 +1368,15 @@ function setupImportSitesForm($form) {
 
 function updateParticipants(buttonElement) {
 
+  var roleSelects = $("select[id^='role']");
+    for (var i = 0; i < roleSelects.length; i++){
+	  var el = roleSelects[i];
+	  for (var ii = 0; ii < el.options.length; ii++){			
+		if(el.options[ii].value == "Student"){
+			el.options[ii].disabled = false;
+		}
+	 }
+  }
   SPNR.disableControlsAndSpin(buttonElement, null);
   document.participantForm.submit();
   return false;

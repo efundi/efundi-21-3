@@ -30,6 +30,7 @@ import org.sakaiproject.gradebookng.tool.pages.AccessDeniedPage;
 import org.sakaiproject.gradebookng.tool.pages.ErrorPage;
 import org.sakaiproject.gradebookng.tool.pages.GradebookPage;
 import org.sakaiproject.gradebookng.tool.pages.ImportExportPage;
+import org.sakaiproject.gradebookng.tool.pages.NWUMPSPage;
 import org.sakaiproject.gradebookng.tool.pages.PermissionsPage;
 import org.sakaiproject.gradebookng.tool.pages.SettingsPage;
 import org.sakaiproject.gradebookng.tool.pages.StudentPage;
@@ -54,6 +55,7 @@ public class GradebookNgApplication extends WebApplication {
 		mountPage("/gradebook", StudentPage.class);
 		mountPage("/accessdenied", AccessDeniedPage.class);
 		mountPage("/error", ErrorPage.class);
+		mountPage("/nwumps", NWUMPSPage.class);
 
 		// remove the version number from the URL so that browser refreshes re-render the page
 		getRequestCycleSettings().setRenderStrategy(RenderStrategy.ONE_PASS_RENDER);

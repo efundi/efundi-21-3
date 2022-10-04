@@ -70,6 +70,7 @@ public class BasePage extends WebPage {
 	Link<Void> settingsPageLink;
 	Link<Void> importExportPageLink;
 	Link<Void> permissionsPageLink;
+	Link<Void> nwumpsPageLink;
 
 	public final GbFeedbackPanel feedbackPanel;
 
@@ -162,6 +163,24 @@ public class BasePage extends WebPage {
 		};
 		this.settingsPageLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
 		nav.add(this.settingsPageLink);
+		
+		// nwumps page
+		this.nwumpsPageLink = new Link<Void>("nwumpsPageLink") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick() {
+				setResponsePage(NWUMPSPage.class);
+			}
+
+			@Override
+			public boolean isVisible() {
+				return (businessService.isUserAbleToViewMPS());
+			}
+		};
+		this.nwumpsPageLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
+		nav.add(this.nwumpsPageLink);
+		nwumpsPageLink.setVisible(nwumpsPageLink.isVisible());
 
 		add(nav);
 

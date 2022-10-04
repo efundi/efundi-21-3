@@ -23,6 +23,7 @@ package org.sakaiproject.component.section.sakai;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -554,6 +555,38 @@ public abstract class SectionManagerImpl implements SectionManager, SiteAdvisor 
 		}
 		return membersList;
 	}
+	
+	/**
+	 * 
+	 * @param sectionUuid
+	 * @return
+	 */
+	public List<EnrollmentRecord> getSectionEnrollmentsForNWU(String sectionUuid) {
+		Group group = findGroup(sectionUuid);
+		CourseSection section = getSection(sectionUuid);
+		if(section == null) {
+			return new ArrayList<EnrollmentRecord>();
+		}
+		if(log.isDebugEnabled()) log.debug("Getting section enrollments in " + sectionUuid);
+		String studentRole;
+		try {
+			studentRole = getSectionStudentRoleForNWU(group);
+		} catch (RoleConfigurationException rce) {
+			log.error(rce.getMessage());
+			return new ArrayList<EnrollmentRecord>();
+		}
+
+		Set sakaiUserUids = group.getUsersHasRole(studentRole);
+		List sakaiUsers = userDirectoryService.getUsers(sakaiUserUids);
+
+		List<EnrollmentRecord> membersList = new ArrayList<EnrollmentRecord>();
+		for(Iterator iter = sakaiUsers.iterator(); iter.hasNext();) {
+			User user = SakaiUtil.convertUser((org.sakaiproject.user.api.User) iter.next());
+			EnrollmentRecordImpl record = new EnrollmentRecordImpl(section, null, user);
+			membersList.add(record);
+		}
+		return membersList;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -739,6 +772,22 @@ public abstract class SectionManagerImpl implements SectionManager, SiteAdvisor 
 	
 	private String getSectionStudentRole(AuthzGroup group) throws RoleConfigurationException {
 		Set roleStrings = group.getRolesIsAllowed(SectionAwareness.STUDENT_MARKER);
+		if(roleStrings.size() != 1) {
+			if(log.isDebugEnabled()) log.debug("Group " + group +
+				" must have one and only one role with permission " +
+				SectionAwareness.STUDENT_MARKER);
+			throw new RoleConfigurationException("Can't add a user to a section as a student, since there is no student-flagged role");
+		}
+		return (String)roleStrings.iterator().next();
+	}
+	
+	private String getSectionStudentRoleForNWU(AuthzGroup group) throws RoleConfigurationException {
+		Set roleStrings = group.getRolesIsAllowed(SectionAwareness.STUDENT_MARKER);
+		if(roleStrings.contains("Student")) {
+			HashSet<String> studentSet = new HashSet<String>();
+			studentSet.add("Student");
+			roleStrings.retainAll(studentSet);
+		}
 		if(roleStrings.size() != 1) {
 			if(log.isDebugEnabled()) log.debug("Group " + group +
 				" must have one and only one role with permission " +
