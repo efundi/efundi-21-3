@@ -1,0 +1,69 @@
+{
+  "_from": "@open-wc/dedupe-mixin@^1.2.18",
+  "_id": "@open-wc/dedupe-mixin@1.3.1",
+  "_inBundle": false,
+  "_integrity": "sha512-ukowSvzpZQDUH0Y3znJTsY88HkiGk3Khc0WGpIPhap1xlerieYi27QBg6wx/nTurpWfU6XXXsx9ocxDYCdtw0Q==",
+  "_location": "/@open-wc/dedupe-mixin",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@open-wc/dedupe-mixin@^1.2.18",
+    "name": "@open-wc/dedupe-mixin",
+    "escapedName": "@open-wc%2fdedupe-mixin",
+    "scope": "@open-wc",
+    "rawSpec": "^1.2.18",
+    "saveSpec": null,
+    "fetchSpec": "^1.2.18"
+  },
+  "_requiredBy": [
+    "/@lion/core",
+    "/@lion/pagination/@lion/core",
+    "/@open-wc/scoped-elements"
+  ],
+  "_resolved": "https://registry.npmjs.org/@open-wc/dedupe-mixin/-/dedupe-mixin-1.3.1.tgz",
+  "_shasum": "5c1a1eeb0386b344290ebe3f1fca0c4869933dbf",
+  "_spec": "@open-wc/dedupe-mixin@^1.2.18",
+  "_where": "/tmp/asset_stagemZrVvv/node_modules/@lion/core",
+  "author": {
+    "name": "open-wc"
+  },
+  "bugs": {
+    "url": "https://github.com/open-wc/open-wc/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Dedupe JavaScript Class Mixins",
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "src"
+  ],
+  "homepage": "https://github.com/open-wc/open-wc/tree/master/packages/dedupe-mixin",
+  "keywords": [
+    "dedupe",
+    "mixins"
+  ],
+  "license": "MIT",
+  "module": "index.js",
+  "name": "@open-wc/dedupe-mixin",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-wc/open-wc.git",
+    "directory": "packages/dedupe-mixin"
+  },
+  "scripts": {
+    "demo-build:no-dedupe": "rollup -c demo-typed/no-dedupe/rollup.config.js",
+    "demo-build:with-dedupe": "rollup -c demo-typed/with-dedupe/rollup.config.js",
+    "prepublishOnly": "publish-docs --github-url https://github.com/open-wc/open-wc/ --git-root-dir ../../",
+    "site:build": "run-p demo-build:*",
+    "start:no-dedupe": "http-server -o demo-typed/no-dedupe/",
+    "start:with-dedupe": "http-server -o demo-typed/with-dedupe/"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "1.3.1"
+}

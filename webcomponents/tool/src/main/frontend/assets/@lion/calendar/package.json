@@ -1,0 +1,77 @@
+{
+  "_from": "@lion/calendar@0.9.8",
+  "_id": "@lion/calendar@0.9.8",
+  "_inBundle": false,
+  "_integrity": "sha512-qXkND4nMqlz0M9rGou3rnTOG2Eri/meenrlADXD3kj5N3+MWUzlQ9j2uNsAR0cgBr6L0h/X7TTJsAlCvL/irjA==",
+  "_location": "/@lion/calendar",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@lion/calendar@0.9.8",
+    "name": "@lion/calendar",
+    "escapedName": "@lion%2fcalendar",
+    "scope": "@lion",
+    "rawSpec": "0.9.8",
+    "saveSpec": null,
+    "fetchSpec": "0.9.8"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@lion/calendar/-/calendar-0.9.8.tgz",
+  "_shasum": "a849ace1511c39ae2262736078e53ae7a442c7ff",
+  "_spec": "@lion/calendar@0.9.8",
+  "_where": "/tmp/asset_stagemZrVvv",
+  "author": {
+    "name": "ing-bank"
+  },
+  "bugs": {
+    "url": "https://github.com/ing-bank/lion/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@lion/core": "0.9.1",
+    "@lion/localize": "0.14.1"
+  },
+  "deprecated": false,
+  "description": "Standalone calendar",
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "docs",
+    "src",
+    "test",
+    "test-helpers",
+    "translations",
+    "types"
+  ],
+  "homepage": "https://github.com/ing-bank/lion/",
+  "keywords": [
+    "calendar",
+    "lion",
+    "web-components"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "module": "index.js",
+  "name": "@lion/calendar",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ing-bank/lion.git",
+    "directory": "packages/calendar"
+  },
+  "scripts": {
+    "prepublishOnly": "../../scripts/npm-prepublish.js",
+    "start": "cd ../../ && yarn dev-server --open packages/calendar/README.md",
+    "test": "cd ../../ && yarn test:browser --grep \"packages/calendar/test/**/*.test.js\"",
+    "test:watch": "cd ../../ && yarn test:browser:watch --grep \"packages/calendar/test/**/*.test.js\""
+  },
+  "sideEffects": [
+    "lion-calendar.js"
+  ],
+  "version": "0.9.8"
+}

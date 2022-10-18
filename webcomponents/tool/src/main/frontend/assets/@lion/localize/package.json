@@ -1,0 +1,78 @@
+{
+  "_from": "@lion/localize@0.14.1",
+  "_id": "@lion/localize@0.14.1",
+  "_inBundle": false,
+  "_integrity": "sha512-fbY0XhvGkKQ78nKnZFq+kJQeIFDbc9mFSMqOL9dL2ZKNQMJRrL7HzCwYrIvB6palYGbC4kv6yH7ND1nBoPMZXw==",
+  "_location": "/@lion/localize",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@lion/localize@0.14.1",
+    "name": "@lion/localize",
+    "escapedName": "@lion%2flocalize",
+    "scope": "@lion",
+    "rawSpec": "0.14.1",
+    "saveSpec": null,
+    "fetchSpec": "0.14.1"
+  },
+  "_requiredBy": [
+    "/@lion/calendar"
+  ],
+  "_resolved": "https://registry.npmjs.org/@lion/localize/-/localize-0.14.1.tgz",
+  "_shasum": "02b2382b9be7d546b755cefc53d0d738f195f0d0",
+  "_spec": "@lion/localize@0.14.1",
+  "_where": "/tmp/asset_stagemZrVvv/node_modules/@lion/calendar",
+  "author": {
+    "name": "ing-bank"
+  },
+  "bugs": {
+    "url": "https://github.com/ing-bank/lion/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@bundled-es-modules/message-format": "6.0.4",
+    "@lion/core": "0.9.1",
+    "singleton-manager": "1.1.2"
+  },
+  "deprecated": false,
+  "description": "The localization system helps to manage localization data split into locales and automate its loading",
+  "devDependencies": {
+    "@bundled-es-modules/fetch-mock": "^6.5.2"
+  },
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "docs",
+    "src",
+    "test",
+    "test-helpers",
+    "translations",
+    "types"
+  ],
+  "homepage": "https://github.com/ing-bank/lion/",
+  "keywords": [
+    "lion",
+    "localize",
+    "web-components"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "module": "index.js",
+  "name": "@lion/localize",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ing-bank/lion.git",
+    "directory": "packages/localize"
+  },
+  "scripts": {
+    "prepublishOnly": "../../scripts/npm-prepublish.js",
+    "test": "cd ../../ && yarn test:browser --grep \"packages/localize/test/**/*.test.js\"",
+    "test:watch": "cd ../../ && yarn test:browser:watch --grep \"packages/localize/test/**/*.test.js\""
+  },
+  "sideEffects": false,
+  "version": "0.14.1"
+}

@@ -1,0 +1,78 @@
+{
+  "_from": "@lion/overlays@0.16.13",
+  "_id": "@lion/overlays@0.16.13",
+  "_inBundle": false,
+  "_integrity": "sha512-52utgiX2rOtPH5hRmOe4p3kUY/KlLnNhaI0ZyrA6IU8JF/404dLuOwzc6v62hoqeBFyuJtZiHWU3/IWNGwVOjg==",
+  "_location": "/@lion/overlays",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@lion/overlays@0.16.13",
+    "name": "@lion/overlays",
+    "escapedName": "@lion%2foverlays",
+    "scope": "@lion",
+    "rawSpec": "0.16.13",
+    "saveSpec": null,
+    "fetchSpec": "0.16.13"
+  },
+  "_requiredBy": [
+    "/@lion/dialog"
+  ],
+  "_resolved": "https://registry.npmjs.org/@lion/overlays/-/overlays-0.16.13.tgz",
+  "_shasum": "769e81503dd0801933af9e67a9ef97d8f0221e48",
+  "_spec": "@lion/overlays@0.16.13",
+  "_where": "/tmp/asset_stagemZrVvv/node_modules/@lion/dialog",
+  "author": {
+    "name": "ing-bank"
+  },
+  "bugs": {
+    "url": "https://github.com/ing-bank/lion/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@lion/core": "0.9.1",
+    "popper.js": "^1.15.0",
+    "singleton-manager": "1.1.2"
+  },
+  "deprecated": false,
+  "description": "Overlays System using lit-html for rendering",
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "docs",
+    "src",
+    "test",
+    "test-helpers",
+    "translations",
+    "types"
+  ],
+  "homepage": "https://github.com/ing-bank/lion/",
+  "keywords": [
+    "lion",
+    "overlays",
+    "web-components"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "module": "index.js",
+  "name": "@lion/overlays",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ing-bank/lion.git",
+    "directory": "packages/overlays"
+  },
+  "scripts": {
+    "prepublishOnly": "../../scripts/npm-prepublish.js",
+    "test": "cd ../../ && yarn test:browser --grep \"packages/overlays/test/**/*.test.js\"",
+    "test:watch": "cd ../../ && yarn test:browser:watch --grep \"packages/overlays/test/**/*.test.js\""
+  },
+  "sideEffects": [
+    "./docs/demo-overlay-system.js",
+    "./docs/applyDemoOverlayStyles.js"
+  ],
+  "version": "0.16.13"
+}

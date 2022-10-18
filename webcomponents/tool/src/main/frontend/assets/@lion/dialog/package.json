@@ -1,0 +1,78 @@
+{
+  "_from": "@lion/dialog@0.7.13",
+  "_id": "@lion/dialog@0.7.13",
+  "_inBundle": false,
+  "_integrity": "sha512-/jjwu6LmvD60sGpzKOOjtHEDhZY0e4v1ofv2JwPcfzpH4PFhb+rBs61p1I0QtiM4AH0+gqatkeAOBuIAjYfEMw==",
+  "_location": "/@lion/dialog",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@lion/dialog@0.7.13",
+    "name": "@lion/dialog",
+    "escapedName": "@lion%2fdialog",
+    "scope": "@lion",
+    "rawSpec": "0.7.13",
+    "saveSpec": null,
+    "fetchSpec": "0.7.13"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@lion/dialog/-/dialog-0.7.13.tgz",
+  "_shasum": "1430c286f726666e9914777c027f3db3001ee0f0",
+  "_spec": "@lion/dialog@0.7.13",
+  "_where": "/tmp/asset_stagemZrVvv",
+  "author": {
+    "name": "ing-bank"
+  },
+  "bugs": {
+    "url": "https://github.com/ing-bank/lion/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@lion/core": "0.9.1",
+    "@lion/overlays": "0.16.13"
+  },
+  "deprecated": false,
+  "description": "Show relative overlay content on click, as a webcomponent",
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "docs",
+    "src",
+    "test",
+    "test-helpers",
+    "translations",
+    "types"
+  ],
+  "homepage": "https://github.com/ing-bank/lion/",
+  "keywords": [
+    "dialog",
+    "lion",
+    "web-components"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "module": "index.js",
+  "name": "@lion/dialog",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ing-bank/lion.git",
+    "directory": "packages/dialog"
+  },
+  "scripts": {
+    "prepublishOnly": "../../scripts/npm-prepublish.js",
+    "start": "cd ../../ && yarn dev-server --open packages/dialog/README.md",
+    "test": "cd ../../ && yarn test:browser --grep \"packages/dialog/test/**/*.test.js\"",
+    "test:watch": "cd ../../ && yarn test:browser:watch --grep \"packages/dialog/test/**/*.test.js\""
+  },
+  "sideEffects": [
+    "lion-dialog.js",
+    "./docs/styled-dialog-content.js"
+  ],
+  "version": "0.7.13"
+}
