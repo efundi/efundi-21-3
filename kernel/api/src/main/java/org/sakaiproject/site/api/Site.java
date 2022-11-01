@@ -75,6 +75,11 @@ public interface Site extends Edit, Comparable, Serializable, AuthzGroup
 	public final static String PROP_CUSTOM_OVERVIEW = "custom_overview";
 
 	/**
+	 * property name for allow student enrolments
+	 */
+	public final static String PROP_ALLOW_STUDENT_ENROLMENTS = "allow-student-enrolments";
+	
+	/**
 	 * @return the user who created this.
 	 */
 	User getCreatedBy();

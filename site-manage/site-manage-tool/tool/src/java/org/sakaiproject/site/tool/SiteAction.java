@@ -2045,7 +2045,12 @@ public class SiteAction extends PagedResourceActionII {
 			context.put("allowUpdateSiteMembership", allowUpdateSiteMembership);
 			context.put("isMyWorkspace", isMyWorkspace);
 			context.put("siteTitle", site.getTitle());
-			context.put("isCourseSite", SiteTypeUtil.isCourseSite(site.getType()));
+			boolean isCourseSite = SiteTypeUtil.isCourseSite(site.getType());
+			context.put("isCourseSite", isCourseSite);
+			
+			if(isCourseSite) {
+				context.put("allowStudentEnrolments", Boolean.parseBoolean(site.getProperties().getProperty(Site.PROP_ALLOW_STUDENT_ENROLMENTS)));
+			}
 
 			// Set participant list
 			if (allowUpdateSite || allowViewRoster || allowUpdateSiteMembership) {
@@ -12147,6 +12152,10 @@ private Map<String, List<MyTool>> getTools(SessionState state, String type, Site
 						siteInfo.site_contact_name);
 				rp.addProperty(Site.PROP_SITE_CONTACT_EMAIL,
 						siteInfo.site_contact_email);
+				
+				if(SiteTypeUtil.isCourseSite(site.getType())) {
+					rp.addProperty(Site.PROP_ALLOW_STUDENT_ENROLMENTS, "false");
+				}
 				
 				// SAK-22790 add props from SiteInfo object
 				rp.addAll(siteInfo.getProperties());
