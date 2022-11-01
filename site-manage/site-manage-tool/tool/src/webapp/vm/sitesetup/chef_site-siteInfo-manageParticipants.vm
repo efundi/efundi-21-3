@@ -188,12 +188,12 @@
                                         #end
                                             #foreach( $r in $allowedRoles )
                                                 #if( $r.Id == $uRole )
-                                                    <option value="$r.Id" selected>
+                                                    <option value="$r.Id" selected #if($r.Id == "Student" && !$allowStudentEnrolments)disabled#end>
                                                         $r.Id
                                                     </option>
                                                 #else
                                                     #if( !($r.isProviderOnly() || ($hasRestrictedRole == "true")) )
-                                                        <option value="$r.Id">
+                                                        <option value="$r.Id" #if($r.Id == "Student" && !$allowStudentEnrolments)disabled#end>
                                                             $r.Id
                                                         </option>
                                                     #end

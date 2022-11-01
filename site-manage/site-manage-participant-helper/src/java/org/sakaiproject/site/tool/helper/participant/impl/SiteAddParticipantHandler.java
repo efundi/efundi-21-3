@@ -37,6 +37,7 @@ import org.sakaiproject.authz.api.GroupNotDefinedException;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.component.cover.ComponentManager;
+import org.sakaiproject.entity.api.ResourcePropertiesEdit;
 import org.sakaiproject.event.api.UsageSessionService;
 import org.sakaiproject.event.cover.EventTrackingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -276,6 +277,11 @@ public class SiteAddParticipantHandler {
                 
                 // SAK-23257
                 roles = SiteParticipantHelper.getAllowedRoles( site.getType(), realm.getRoles() );
+            
+                ResourcePropertiesEdit rp = site.getPropertiesEdit();                
+                if(isCourseSite() && !Boolean.parseBoolean(rp.getProperty(Site.PROP_ALLOW_STUDENT_ENROLMENTS))) {
+                	roles.removeIf(role -> role.getId().equals("Student"));
+                }
             
             } catch (IdUnusedException | GroupNotDefinedException e) {
                 log.error( "The siteId we were given was bogus", e );

@@ -1,0 +1,1 @@
+INSERT INTO sakai_site_property (`SITE_ID`, `NAME`, `VALUE`) INSERT INTO sakai_site_property (`SITE_ID`, `NAME`, `VALUE`)  SELECT ss.site_id, 'allow-student-enrolments', 'false'  FROM sakai_site ss where ss.type = 'course'; 
