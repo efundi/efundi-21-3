@@ -1106,7 +1106,8 @@ public class LessonBuilderEntityProducer extends AbstractEntityProvider
 			}
 			if (itemUpdated) simplePageToolDao.quickUpdate(item);
 		}
-	}
+	    
+		}
 
     public String fixUrls(String s, String oldServer, String siteId, String fromSiteId, Map<Long,Long> itemMap) {
         ContentCopyContext context = new ContentCopyContext(fromSiteId, siteId, oldServer);
