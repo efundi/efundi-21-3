@@ -135,6 +135,15 @@ public interface SectionManager {
      * @return The enrollments
      */
     public List<EnrollmentRecord> getSectionEnrollments(String sectionUuid);
+    
+    /**
+     * Gets a list of {@link org.sakaiproject.section.api.coursemanagement.EnrollmentRecord
+     * EnrollmentRecord}s belonging to a section.
+     *
+     * @param sectionUuid The section uuid
+     * @return The enrollments
+     */
+    public List<EnrollmentRecord> getSectionEnrollmentsForNWU(String sectionUuid);
 
     /**
      * Finds a list of {@link org.sakaiproject.section.api.coursemanagement.EnrollmentRecord

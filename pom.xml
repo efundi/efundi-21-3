@@ -40,6 +40,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+            	<module>nwu-gradebook-ws</module>
                 <module>master</module>
                 <module>admin-tools</module>
                 <module>admin-su</module>
@@ -121,13 +122,16 @@
                 <module>webjars</module>
                 <module>webservices</module>
                 <module>wicket</module>
-                <module>blogwow</module>
-                <module>scorm</module>
+                <module>blogwow2</module>
+                <module>scorm2</module>
+                <module>cm-scheduler-base</module>
+                <module>cmprovider</module>
             </modules>
         </profile>
         <profile>
             <id>experimental</id>
             <modules>
+            	<module>nwu-gradebook-ws</module>
                 <module>master</module>
                 <module>access</module>
                 <module>admin-su</module>
@@ -212,8 +216,10 @@
                 <module>webservices</module>
                 <module>wicket</module>
                 <module>yaft</module>
-                <module>blogwow</module>
-                <module>scorm</module>
+                <module>blogwow2</module>
+                <module>scorm2</module>
+                <module>cmprovider</module>
+                <module>cm-scheduler-base</module>
             </modules>
         </profile>
 

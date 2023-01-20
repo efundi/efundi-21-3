@@ -412,7 +412,7 @@ public class TurnitinReviewServiceImpl extends BaseContentReviewService {
 		String uem = getEmail(user);
 		String ufn = getUserFirstName(user);
 		String uln = getUserLastName(user);
-		String uid = item.getUserId();
+		String uid = TurnitinAPIUtil.removeDiacritics(item.getUserId());
 		String utp = "1";
 
 		Map params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(), "fid", fid, "fcmd", fcmd, "assignid",
@@ -785,7 +785,7 @@ public class TurnitinReviewServiceImpl extends BaseContentReviewService {
 			log.error("(getAllEnrollmentInfo)User not defined. " + e);
 		}
 		params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(), "fid", "19", "fcmd", "5", "tem",
-				getTEM(siteId), "ctl", siteId, "cid", siteId, "utp", "2", "uid", user.getId(), "uem", getEmail(user),
+				getTEM(siteId), "ctl", siteId, "cid", siteId, "utp", "2", "uid", TurnitinAPIUtil.removeDiacritics(user.getId()), "uem", getEmail(user),
 				"ufn", user.getFirstName(), "uln", user.getLastName());
 		Document document = null;
 		try {
@@ -1270,7 +1270,7 @@ public class TurnitinReviewServiceImpl extends BaseContentReviewService {
 		Map params = new HashMap();
 		params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(), "fid", fid, "fcmd", fcmd, "cid", cid, "tem",
 				tem, "ctl", ctl, "dis", studentAccountNotified ? "0" : "1", "uem", uem, "ufn", ufn, "uln", uln, "utp",
-				utp, "uid", uid);
+				utp, "uid", TurnitinAPIUtil.removeDiacritics(uid));
 
 		Document document = turnitinConn.callTurnitinReturnDocument(params);
 
@@ -1480,7 +1480,7 @@ public class TurnitinReviewServiceImpl extends BaseContentReviewService {
 			String ptl = userEid + ":" + fileName;
 			String ptype = "2";
 
-			String uid = item.getUserId();
+			String uid = TurnitinAPIUtil.removeDiacritics(item.getUserId());
 			String cid = item.getSiteId();
 			String assignid = item.getTaskId();
 
@@ -2168,7 +2168,7 @@ public class TurnitinReviewServiceImpl extends BaseContentReviewService {
 				}
 			}
 		}
-		return ufn;
+		return TurnitinAPIUtil.removeDiacritics(ufn);
 	}
 
 	/**

@@ -21,6 +21,11 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.sakaiproject.rsf.producers.FrameAdjustingProducer;
 import org.sakaiproject.rsf.util.SakaiURLUtil;
+import org.sakaiproject.component.cover.ComponentManager;
+import org.sakaiproject.site.tool.helper.participant.impl.SiteAddParticipantHandler;
+import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.tool.api.Tool;
+import org.sakaiproject.user.api.UserDirectoryService;
 import uk.org.ponder.messageutil.MessageLocator;
 import uk.org.ponder.messageutil.TargettedMessage;
 import uk.org.ponder.messageutil.TargettedMessageList;
@@ -29,6 +34,7 @@ import uk.org.ponder.rsf.components.UICommand;
 import uk.org.ponder.rsf.components.UIContainer;
 import uk.org.ponder.rsf.components.UIForm;
 import uk.org.ponder.rsf.components.UIInput;
+import uk.org.ponder.rsf.components.UILink;
 import uk.org.ponder.rsf.components.UIMessage;
 import uk.org.ponder.rsf.components.UIOutput;
 import uk.org.ponder.rsf.components.UIOutputMany;
@@ -48,12 +54,6 @@ import uk.org.ponder.rsf.viewstate.SimpleViewParameters;
 import uk.org.ponder.rsf.viewstate.ViewParameters;
 import uk.org.ponder.rsf.viewstate.ViewParamsReporter;
 import uk.org.ponder.stringutil.StringList;
-
-import org.sakaiproject.component.cover.ComponentManager;
-import org.sakaiproject.site.tool.helper.participant.impl.SiteAddParticipantHandler;
-import org.sakaiproject.tool.api.SessionManager;
-import org.sakaiproject.tool.api.Tool;
-import org.sakaiproject.user.api.UserDirectoryService;
 
 /**
  * 
@@ -97,6 +97,10 @@ public class AddProducer implements ViewComponentProducer, NavigationCaseReporte
     		// show specific instructions for adding participant into course site
     		UIMessage.make(content, "add.official", "add.official");
     		UIMessage.make(content, "add.official1", "add.official1");
+    		UIMessage.make(content, "add.students.instruction1", "add.students.instruction1");
+    		String url = handler.getServerConfigurationString("nwu.ithelp.url", "http://ithelp.nwu.ac.za");
+    		UILink.make(content, "add.students.instruction2", url, url);
+    		UIMessage.make(content, "add.students.instruction3", "add.students.instruction3");
     		UIMessage.make(content, "add.official.instruction", "add.official.instruction");
 	    }
         

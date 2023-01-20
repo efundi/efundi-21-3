@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<body>
+	<wicket:panel>
+		<div wicket:id="modalOutputStudentInfo" />
+
+		<div class="col-md-10">
+			Help: Please create a <a wicket:id="itHelpURL_link" href="#">support
+				request</a> and add the sitename and testname with the error
+		</div>
+		<div class="col-md-2">
+			<input type="submit" wicket:id="student-info-resubmit"
+				class="btn btn-primary"
+				wicket:message="value:button.resubmit" />
+			<input type="submit" wicket:id="student-info-close"
+				class="btn btn-primary"
+				wicket:message="value:button.studentInfoClose" />
+		</div>
+
+		<br />
+		
+		<div class="col-md-2">
+			<wicket:message key="label.selectall" /> <input type="checkbox" id="select-all" onchange="selectAllCheckboxes();">			
+	    </div>
+	    
+		<br />
+
+		<table wicket:id="student-info-table" class="dataview table"></table>
+
+	</wicket:panel>
+</body>
+</html>
