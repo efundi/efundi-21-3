@@ -93,7 +93,8 @@ public class ModuleSearch {
 																				 // value
 				moduleOffering.setModuleSubjectCode(moduleOfferingInfo.getModuleSubjectCode());
 				moduleOffering.setModuleNumber(moduleOfferingInfo.getModuleNumber());
-				moduleOffering.setModuleSite(moduleOfferingInfo.getModuleSite());
+				String moduleSite = Integer.toString(Math.abs(Integer.parseInt(moduleOfferingInfo.getModuleSite())));				
+				moduleOffering.setModuleSite(moduleSite);
 				moduleOffering.setMethodOfDeliveryTypeKey(moduleOfferingInfo.getMethodOfDeliveryTypeKey());
 				moduleOffering.setModeOfDeliveryTypeKey(moduleOfferingInfo.getModeOfDeliveryTypeKey());
 				moduleOffering.setLanguageTypeKey(moduleOfferingInfo.getLanguageTypeKey());
@@ -115,7 +116,7 @@ public class ModuleSearch {
 				moduleOffering.setLinkedByLecturer(getLinkedByLecturer(calendar.get(Calendar.YEAR),
 						moduleOfferingInfo.getModuleSubjectCode(), moduleOfferingInfo.getModuleNumber().substring(0, 1),
 						moduleOfferingInfo.getModuleNumber().substring(1, 3),
-						Campus.getCampus(moduleOfferingInfo.getModuleSite()).getNumber(), methodOfDelResult,
+						Campus.getCampus(moduleSite).getNumber(), methodOfDelResult,
 						modeOfDelResult));
 				moduleSet.add(moduleOffering);
 				moduleIdCnt += 1;
