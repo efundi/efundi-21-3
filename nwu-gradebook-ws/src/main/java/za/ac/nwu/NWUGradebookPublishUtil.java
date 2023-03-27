@@ -17,7 +17,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -71,7 +70,6 @@ public final class NWUGradebookPublishUtil {
 	private static PropertiesHolder properties = new PropertiesHolder();
 	private static StudentAssessmentService studentAssessmentService = null;
 	private static StudentAssessmentServiceCRUD studentAssessmentServiceCRUDService = null;
-	private static AcademicPeriodInfo academicPeriodInfo = null;
 	private static MetaInfo metaInfo = null;
 	private static ContextInfo contextInfo = new ContextInfo("EFUNDI");
 	private static CourseOfferingService courseOfferingService = null;
@@ -232,6 +230,8 @@ public final class NWUGradebookPublishUtil {
 
 		ResultSet studentGradebookMarksResultSet = null;
 		ResultSet nwuGradebookRecordsSelectResultSet = null;
+		
+		AcademicPeriodInfo academicPeriodInfo = null;
 
 		try {
 			String module = null, siteTitle = null, studentNumber, assessmentName = null, evalDescr = null, evalShortDescr = null;
@@ -246,19 +246,27 @@ public final class NWUGradebookPublishUtil {
 			siteTitle = getSiteTitle(siteId);
 
 			LocalDate now = LocalDate.now();
-			ZoneId defaultZoneId = ZoneId.systemDefault();
-
-			LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
-			Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());				
-
-			LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
-			Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
+			ZoneId defaultZoneId = ZoneId.systemDefault();			
 
 			for (Map.Entry<String, List<String>> moduleEntry : sectionUsersMap.entrySet()) {
 
 				module = (String) moduleEntry.getKey();
 				studentNumbersForModule = moduleEntry.getValue();
 				studentGradeMap = new HashMap<>();
+				
+				String year = module.substring(module.length() - 4);
+				
+				academicPeriodInfo = new AcademicPeriodInfo();
+				academicPeriodInfo.setAcadPeriodtTypeKey("vss.code.AcademicPeriod.YEAR");
+				academicPeriodInfo.setAcadPeriodValue(year);
+
+				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
+				firstDayOfYear.withYear(Integer.parseInt(year));
+				Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());
+
+				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
+				lastDayOfYear.withYear(Integer.parseInt(year));
+				Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
 
 				for (String assignmentId : assignmentIds) {
 
@@ -351,7 +359,7 @@ public final class NWUGradebookPublishUtil {
 						// # If the INSERT was successful and studentGradeMap not empty, send student grades/data via Webservice
 						// StudentAssessmentServiceCRUD
 						publishGrades(siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
-								dueDate, recordedDate, startDate, endDate);
+								dueDate, recordedDate, startDate, endDate, academicPeriodInfo);
 					}
 				}
 
@@ -447,6 +455,8 @@ public final class NWUGradebookPublishUtil {
 
 		ResultSet studentGradebookMarksResultSet = null;
 		ResultSet nwuGradebookRecordsSelectResultSet = null;
+		
+		AcademicPeriodInfo academicPeriodInfo = null;
 
 		try {
 			String module = null, siteTitle = null, studentNumber, assessmentName = null, evalDescr = null, evalShortDescr = null;
@@ -464,18 +474,26 @@ public final class NWUGradebookPublishUtil {
 			LocalDate now = LocalDate.now();
 			ZoneId defaultZoneId = ZoneId.systemDefault();
 
-			LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
-			Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());
-
-			LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
-			Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
-
 			for (Map.Entry<String, List<String>> moduleEntry : sectionUsersMap.entrySet()) {
-
+				
 				module = (String) moduleEntry.getKey();
 				studentNumbersForModule = moduleEntry.getValue();
-				selectedStudentNumbersForModule = new ArrayList<String>();
+				selectedStudentNumbersForModule = new ArrayList<String>();				
 
+				String year = module.substring(module.length() - 4);
+				
+				academicPeriodInfo = new AcademicPeriodInfo();
+				academicPeriodInfo.setAcadPeriodtTypeKey("vss.code.AcademicPeriod.YEAR");
+				academicPeriodInfo.setAcadPeriodValue(year);
+
+				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
+				firstDayOfYear.withYear(Integer.parseInt(year));
+				Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());
+
+				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
+				lastDayOfYear.withYear(Integer.parseInt(year));
+				Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
+								
 				getStudentNumbersForModule(selectedStudentNumbersForModule, selectedStudentInfoIds, studentNumbersForModule);
 				if (selectedStudentNumbersForModule == null || selectedStudentNumbersForModule.isEmpty() )
 					continue;
@@ -568,7 +586,7 @@ public final class NWUGradebookPublishUtil {
 					// # If the INSERT was successful and studentGradeMap not empty, send student grades/data via Webservice
 					// StudentAssessmentServiceCRUD
 					republishGrades(siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
-							dueDate, recordedDate, startDate, endDate);
+							dueDate, recordedDate, startDate, endDate, academicPeriodInfo);
 				}
 
 				log.info("Republishing NWU Gradebook Data complete! Finished at " + dtf.format(LocalDateTime.now()));
@@ -655,10 +673,11 @@ public final class NWUGradebookPublishUtil {
 	 * @param recordedDate
 	 * @param endDate
 	 * @param startDate
+	 * @param academicPeriodInfo
 	 */
 	private static void publishGrades(String siteId, String module, List<String> moduleValues,
 			HashMap<Integer, Double> studentGradeMap, String siteTitle, String evalDescr, String evalShortDescr, double total,
-			LocalDateTime dueDate, LocalDateTime recordedDate, Date startDate, Date endDate) {
+			LocalDateTime dueDate, LocalDateTime recordedDate, Date startDate, Date endDate, AcademicPeriodInfo academicPeriodInfo) {
 
 		log.info("publishGrades start");
 		log.info("		siteId = " + siteId);
@@ -844,10 +863,12 @@ public final class NWUGradebookPublishUtil {
 	 * @param recordedDate
 	 * @param endDate
 	 * @param startDate
+	 * @param academicPeriodInfo
 	 */
 	private void republishGrades(String siteId, String module, List<String> moduleValues, HashMap<Integer, Double> studentGradeMap,
 			String siteTitle, String evalDescr, String evalShortDescr, double total, LocalDateTime dueDate,
-			LocalDateTime recordedDate, Date startDate, Date endDate) {
+			LocalDateTime recordedDate, Date startDate, Date endDate, AcademicPeriodInfo academicPeriodInfo) {
+		
 		log.info("republishGrades start");
 		log.info("		siteId = " + siteId);
 		log.info("		module = " + module);
@@ -1197,13 +1218,7 @@ public final class NWUGradebookPublishUtil {
 	 * @return
 	 */
 	private static boolean initializeWebserviceObjects() {
-		if (academicPeriodInfo == null) {
-			Calendar calendar = Calendar.getInstance();
-			academicPeriodInfo = new AcademicPeriodInfo();
-			academicPeriodInfo.setAcadPeriodtTypeKey("vss.code.AcademicPeriod.YEAR");
-			academicPeriodInfo.setAcadPeriodValue(Integer.toString(calendar.get(Calendar.YEAR)));
-		}
-
+		
 		if (metaInfo == null) {
 			metaInfo = new MetaInfo();
 			metaInfo.setCreateId(properties.getWSMetaInfoCreateId());
