@@ -740,7 +740,7 @@ public final class NWUGradebookPublishUtil {
 		studentMarkInfo.setMetaInfo(metaInfo);
 
 		try {
-			logMaintainStudentMarkData(studentGradeMap, studentMarkInfo);
+			logMaintainStudentMarkData(studentGradeMap, studentMarkInfo, academicPeriodInfo);
 			MaintainStudentResponseWrapper result = studentAssessmentServiceCRUDService.maintainStudentMark(studentMarkInfo,
 					contextInfo);
 
@@ -772,11 +772,14 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * 
 	 * @param studentGradeMap
 	 * @param studentMarkInfo
+	 * @param academicPeriodInfo
 	 */
-	private static void logMaintainStudentMarkData(HashMap<Integer, Double> studentGradeMap, StudentMarkInfo studentMarkInfo) {
-		log.info("MaintainStudentMark :: ModuleSubjectCode: " + studentMarkInfo.getModuleSubjectCode() + "; ModuleNumber: " + studentMarkInfo.getModuleNumber()
+	private static void logMaintainStudentMarkData(HashMap<Integer, Double> studentGradeMap, StudentMarkInfo studentMarkInfo, AcademicPeriodInfo academicPeriodInfo) {
+		log.info("MaintainStudentMark :: AcadPeriodValue: " + academicPeriodInfo.getAcadPeriodValue()
+		 + "; ModuleSubjectCode: " + studentMarkInfo.getModuleSubjectCode() + "; ModuleNumber: " + studentMarkInfo.getModuleNumber()
 		 + "; EnrolmentCategoryTypeKey: " + studentMarkInfo.getEnrolmentCategoryTypeKey() + "; ModeOfDeliveryTypeKey: " + studentMarkInfo.getModeOfDeliveryTypeKey()
 		 + "; TermTypeKey: " + studentMarkInfo.getTermTypeKey() + "; ModuleOrgEnt: " + studentMarkInfo.getModuleOrgEnt()
 		 + "; ModuleSite: " + studentMarkInfo.getModuleSite() + "; ClassGroupDescription: " + studentMarkInfo.getClassGroupDescription()
@@ -930,7 +933,7 @@ public final class NWUGradebookPublishUtil {
 		studentMarkInfo.setMetaInfo(metaInfo);
 
 		try {
-			logMaintainStudentMarkData(studentGradeMap, studentMarkInfo);
+			logMaintainStudentMarkData(studentGradeMap, studentMarkInfo, academicPeriodInfo);
 			MaintainStudentResponseWrapper result = studentAssessmentServiceCRUDService.maintainStudentMark(studentMarkInfo,
 					contextInfo);
 
@@ -1098,11 +1101,11 @@ public final class NWUGradebookPublishUtil {
 
 		} catch (DoesNotExistException | InvalidParameterException | MissingParameterException | OperationFailedException
 				| PermissionDeniedException e) {
-			log.error("Could not find ModuleOfferingInfo, see error log for subjectCode: " + subjectCode + "; moduleNumber: "
+			log.error("Could not find ModuleOfferingInfo, see error log for AcadPeriodValue: " + academicPeriodInfo.getAcadPeriodValue() + "; subjectCode: " + subjectCode + "; moduleNumber: "
 					+ moduleNumber + "; moduleSite: " + moduleSite + "; enrolmentCategoryTypeKey: " + enrolmentCategoryTypeKey
 					+ "; modeOfDeliveryTypeKey: " + modeOfDeliveryTypeKey, e);
 		} catch (Exception e) {
-			log.error("Could not find ModuleOfferingInfo, see error log for subjectCode: " + subjectCode + "; moduleNumber: "
+			log.error("Could not find ModuleOfferingInfo, see error log for AcadPeriodValue: " + academicPeriodInfo.getAcadPeriodValue() + "; subjectCode: " + subjectCode + "; moduleNumber: "
 					+ moduleNumber + "; moduleSite: " + moduleSite + "; enrolmentCategoryTypeKey: " + enrolmentCategoryTypeKey
 					+ "; modeOfDeliveryTypeKey: " + modeOfDeliveryTypeKey, e);
 		}
