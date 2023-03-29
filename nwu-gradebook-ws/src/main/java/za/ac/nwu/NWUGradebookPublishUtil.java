@@ -260,12 +260,10 @@ public final class NWUGradebookPublishUtil {
 				academicPeriodInfo.setAcadPeriodtTypeKey("vss.code.AcademicPeriod.YEAR");
 				academicPeriodInfo.setAcadPeriodValue(year);
 
-				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
-				firstDayOfYear.withYear(Integer.parseInt(year));
+				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear()).withYear(Integer.parseInt(year));
 				Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());
 
-				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
-				lastDayOfYear.withYear(Integer.parseInt(year));
+				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear()).withYear(Integer.parseInt(year));
 				Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
 
 				for (String assignmentId : assignmentIds) {
@@ -486,12 +484,10 @@ public final class NWUGradebookPublishUtil {
 				academicPeriodInfo.setAcadPeriodtTypeKey("vss.code.AcademicPeriod.YEAR");
 				academicPeriodInfo.setAcadPeriodValue(year);
 
-				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear());
-				firstDayOfYear.withYear(Integer.parseInt(year));
+				LocalDate firstDayOfYear = now.with(TemporalAdjusters.firstDayOfYear()).withYear(Integer.parseInt(year));
 				Date startDate = Date.from(firstDayOfYear.atStartOfDay(defaultZoneId).toInstant());
 
-				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear());
-				lastDayOfYear.withYear(Integer.parseInt(year));
+				LocalDate lastDayOfYear = now.with(TemporalAdjusters.lastDayOfYear()).withYear(Integer.parseInt(year));
 				Date endDate = Date.from(lastDayOfYear.atStartOfDay(defaultZoneId).toInstant());
 								
 				getStudentNumbersForModule(selectedStudentNumbersForModule, selectedStudentInfoIds, studentNumbersForModule);
