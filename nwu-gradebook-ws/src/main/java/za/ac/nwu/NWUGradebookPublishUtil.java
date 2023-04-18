@@ -292,6 +292,7 @@ public final class NWUGradebookPublishUtil {
 					}
 					studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
 
+					studentGradeMap = new HashMap<>();
 					if (studentGradebookMarksResultSet.next() == false) {
 						log.info("No Grades found and published to MPS, see error log for siteId: " + siteId + "; assignmentIds: "
 								+ assignmentIds);
@@ -300,7 +301,6 @@ public final class NWUGradebookPublishUtil {
 					} else {
 
 						do {
-							studentGradeMap = new HashMap<>();
 							studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
 							grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
 							recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
@@ -519,6 +519,7 @@ public final class NWUGradebookPublishUtil {
 				}
 				studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
 
+				studentGradeMap = new HashMap<>();
 				if (studentGradebookMarksResultSet.next() == false) {
 					log.info("No Grades found and republished to MPS, see error log for siteId: " + siteId + "; assignmentId: "
 							+ assignmentId);
@@ -527,7 +528,6 @@ public final class NWUGradebookPublishUtil {
 				} else {
 
 					do {
-						studentGradeMap = new HashMap<>();
 						studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
 						grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
 						recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
