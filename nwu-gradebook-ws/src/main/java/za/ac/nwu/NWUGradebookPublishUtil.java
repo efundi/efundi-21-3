@@ -252,7 +252,6 @@ public final class NWUGradebookPublishUtil {
 
 				module = (String) moduleEntry.getKey();
 				studentNumbersForModule = moduleEntry.getValue();
-				studentGradeMap = new HashMap<>();
 				
 				String year = module.substring(module.length() - 4);
 				
@@ -301,6 +300,7 @@ public final class NWUGradebookPublishUtil {
 					} else {
 
 						do {
+							studentGradeMap = new HashMap<>();
 							studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
 							grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
 							recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
@@ -494,7 +494,6 @@ public final class NWUGradebookPublishUtil {
 				if (selectedStudentNumbersForModule == null || selectedStudentNumbersForModule.isEmpty() )
 					continue;
 
-				studentGradeMap = new HashMap<>();
 				assessmentName = null;
 				
 				// # Get all student numbers and their grades for siteId and the date recorded between start and end date
@@ -528,6 +527,7 @@ public final class NWUGradebookPublishUtil {
 				} else {
 
 					do {
+						studentGradeMap = new HashMap<>();
 						studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
 						grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
 						recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
