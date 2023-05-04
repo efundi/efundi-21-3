@@ -11,8 +11,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow.MaskType;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackDefaultDataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -22,7 +20,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -195,25 +192,21 @@ public class NWUMPSStudentInfoPanel extends BasePanel {
 
 		@Override
 		public void onSubmit(final AjaxRequestTarget target, final Form form) {
-			final GbModalWindow window = getModalOutputWindow();
-			window.setTitle("Resubmit marks to MPS.");
-			window.setContent(new Label(modalOutput.getContentId(), "Marks being send to MPS. Please wait"));
-			window.setComponentToReturnFocusTo(this);
-			window.setMaskType(MaskType.SEMI_TRANSPARENT);			
-			target.appendJavaScript(String.format("setTimeout(function() { $('#%s').modal('hide'); location.reload(true); }, 10000);", window.getMarkupId()));
-
-			window.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-				public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-					target.appendJavaScript("alert('You can\\'t close this modal window using close button."
-							+ " The window will close after marks has been send to MPS.');");
-					return false;
-				}
-			});
-			window.show(target);
-		}
-
-		@Override
-		protected void onAfterSubmit(AjaxRequestTarget target, Form form) {
+//			final GbModalWindow window = getModalOutputWindow();
+//			window.setTitle("Resubmit marks to MPS.");
+//			window.setContent(new Label(modalOutput.getContentId(), "Marks being send to MPS. Please wait"));
+//			window.setComponentToReturnFocusTo(this);
+//			window.setMaskType(MaskType.SEMI_TRANSPARENT);			
+//			target.appendJavaScript(String.format("setTimeout(function() { $('#%s').modal('hide'); location.reload(true); }, 10000);", window.getMarkupId()));
+//
+//			window.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+//				public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+//					target.appendJavaScript("alert('You can\\'t close this modal window using close button."
+//							+ " The window will close after marks has been send to MPS.');");
+//					return false;
+//				}
+//			});
+//			window.show(target);
 			
 			List<String> selectedStudentInfoIds = selectedStudentInfos.stream().map(GbStudentInfoData::getUserId)
 					.collect(Collectors.toList());
@@ -221,10 +214,20 @@ public class NWUMPSStudentInfoPanel extends BasePanel {
 			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
 			gbUtil.republishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap, getAssignmentData().getAssignmentId(),
 					selectedStudentInfoIds);
+			
+			target.appendJavaScript("$.unblockUI();");
+			target.appendJavaScript("location.reload();");
+		}
+
+		@Override
+		protected void onAfterSubmit(AjaxRequestTarget target, Form form) {
 		}
 
 		@Override
 		protected void onError(AjaxRequestTarget target, Form<?> form) {
+			
+			target.appendJavaScript("$.unblockUI();");
+			target.appendJavaScript("location.reload();");
 		}
 	}
 	

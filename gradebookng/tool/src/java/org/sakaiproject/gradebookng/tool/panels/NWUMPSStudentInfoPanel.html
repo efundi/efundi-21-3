@@ -10,12 +10,19 @@
 				request</a> and add the sitename and testname with the error
 		</div>
 		<div class="col-md-2">
-			<input type="submit" wicket:id="student-info-resubmit"
+			<!-- input type="submit" wicket:id="student-info-resubmit"
 				class="btn btn-primary"
 				wicket:message="value:button.resubmit" />
 			<input type="submit" wicket:id="student-info-close"
 				class="btn btn-primary"
-				wicket:message="value:button.studentInfoClose" />
+				wicket:message="value:button.studentInfoClose" / -->
+				
+			<button wicket:id="student-info-resubmit" class="button_color" onclick="lockScreen()">
+        		<wicket:message key="button.resubmit" />
+        	</button>
+        	<button wicket:id="student-info-close" class="button_color">
+        		<wicket:message key="button.studentInfoClose" />
+        	</button>
 		</div>
 
 		<br />

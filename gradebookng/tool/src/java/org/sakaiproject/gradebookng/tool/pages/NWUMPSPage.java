@@ -12,8 +12,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow.MaskType;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackDefaultDataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -23,7 +21,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -214,27 +211,38 @@ public class NWUMPSPage extends BasePage {
 
 		@Override
 		public void onSubmit(final AjaxRequestTarget target, final Form form) {
-			final GbModalWindow window = getModalOutputWindow();
-			window.setTitle("Sending marks to MPS.");
-			window.setContent(new Label(modalOutput.getContentId(), "Marks being send to MPS. Please wait"));
-			window.setComponentToReturnFocusTo(this);
-
-//			window.setWidthUnit("%");
-//			window.setInitialWidth(75);
-//			window.setPositionAtTop(true);
-			window.setMaskType(MaskType.SEMI_TRANSPARENT);
+//			final GbModalWindow window = getModalOutputWindow();
+//			window.setTitle("Sending marks to MPS.");
+//			window.setContent(new Label(modalOutput.getContentId(), "Marks being send to MPS. Please wait"));
+//			window.setComponentToReturnFocusTo(this);
+//
+////			window.setWidthUnit("%");
+////			window.setInitialWidth(75);
+////			window.setPositionAtTop(true);
+//			window.setMaskType(MaskType.SEMI_TRANSPARENT);
+//			
+//			target.appendJavaScript(String.format("setTimeout(function() { $('#%s').modal('hide'); location.reload(true); }, 10000);", window.getMarkupId()));
+//
+//			window.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+//				public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+//					target.appendJavaScript("alert('You can\\'t close this modal window using close button."
+//							+ " The window will close after marks has been send to MPS.');");
+//					return false;
+//				}
+//			});
+//
+//			window.show(target);
 			
-			target.appendJavaScript(String.format("setTimeout(function() { $('#%s').modal('hide'); location.reload(true); }, 10000);", window.getMarkupId()));
 
-			window.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-				public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-					target.appendJavaScript("alert('You can\\'t close this modal window using close button."
-							+ " The window will close after marks has been send to MPS.');");
-					return false;
-				}
-			});
-
-			window.show(target);
+			List<String> selectedAssignmentIds = selectedAssignments.stream().map(GbAssignmentData::getAssignmentId)
+					.collect(Collectors.toList());
+			if(selectedAssignmentIds == null || selectedAssignmentIds.isEmpty()) return;
+			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
+			gbUtil.publishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap,
+					selectedAssignmentIds);
+			
+			target.appendJavaScript("$.unblockUI();");
+			target.appendJavaScript("location.reload();");
 		}
 
 		@Override
@@ -251,17 +259,20 @@ public class NWUMPSPage extends BasePage {
 //			// refresh
 //			setResponsePage(NWUMPSPage.class);
 
-
-			List<String> selectedAssignmentIds = selectedAssignments.stream().map(GbAssignmentData::getAssignmentId)
-					.collect(Collectors.toList());
-			if(selectedAssignmentIds == null || selectedAssignmentIds.isEmpty()) return;
-			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
-			gbUtil.publishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap,
-					selectedAssignmentIds);
+//
+//			List<String> selectedAssignmentIds = selectedAssignments.stream().map(GbAssignmentData::getAssignmentId)
+//					.collect(Collectors.toList());
+//			if(selectedAssignmentIds == null || selectedAssignmentIds.isEmpty()) return;
+//			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
+//			gbUtil.publishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap,
+//					selectedAssignmentIds);
 		}
 
 		@Override
 		protected void onError(AjaxRequestTarget target, Form<?> form) {
+
+			target.appendJavaScript("$.unblockUI();");
+			target.appendJavaScript("location.reload();");
 		}
 	}
 
@@ -302,6 +313,8 @@ public class NWUMPSPage extends BasePage {
 	public void renderHead(IHeaderResponse response) {
 		super.renderHead(response);
 		response.render(CssHeaderItem.forReference(new CssResourceReference(NWUMPSPage.class, "repeater.css")));
+		
+		response.render(JavaScriptHeaderItem.forUrl("/library/webjars/jquery-blockui/2.65/jquery.blockUI.js"));
 		
 		final String version = PortalUtils.getCDNQuery();
 		response.render(JavaScriptHeaderItem.forUrl(String.format("/gradebookng-tool/scripts/gradebook-nwu-mps.js%s", version)));
