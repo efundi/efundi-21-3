@@ -212,11 +212,20 @@ public class NWUMPSStudentInfoPanel extends BasePanel {
 					.collect(Collectors.toList());
 			if(selectedStudentInfoIds == null || selectedStudentInfoIds.isEmpty()) return;
 			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
-			gbUtil.republishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap, getAssignmentData().getAssignmentId(),
-					selectedStudentInfoIds);
-			
+						
+			String status = gbUtil.republishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap, getAssignmentData().getAssignmentId(),
+					selectedStudentInfoIds);			
+
 			target.appendJavaScript("$.unblockUI();");
 			target.appendJavaScript("location.reload();");
+			
+//			if(status == null || status.equals(gbUtil.SUCCESS) || status.equals(gbUtil.ERROR)) {
+//				target.appendJavaScript("$.unblockUI();");
+//				target.appendJavaScript("location.reload();");
+//			} else {
+//				target.appendJavaScript("$.unblockUI();");
+//				target.appendJavaScript("location.reload();");
+//			}
 		}
 
 		@Override

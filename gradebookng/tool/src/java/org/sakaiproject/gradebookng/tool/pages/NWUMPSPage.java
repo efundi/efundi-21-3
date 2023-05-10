@@ -158,7 +158,10 @@ public class NWUMPSPage extends BasePage {
 			// get the list of Assignments
 			final List<Assignment> assignments = businessService.getGradebookAssignments();
 			List<Long> assignmentIds = assignments.stream().map(Assignment::getId).collect(Collectors.toList());
-			Map<Long, List<NWUGradebookRecord>> studentInfoMap = gbUtil.getStudentInfoMap(businessService.getCurrentSiteId(),
+			
+			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
+			
+			Map<Long, List<NWUGradebookRecord>> studentInfoMap = gbUtil.getStudentInfoMap(businessService.getCurrentSiteId(), sectionUsersMap,
 					assignmentIds);
 
 			AssignmentDataProvider assignmentDataProvider = new AssignmentDataProvider(assignments, studentInfoMap);
@@ -238,11 +241,16 @@ public class NWUMPSPage extends BasePage {
 					.collect(Collectors.toList());
 			if(selectedAssignmentIds == null || selectedAssignmentIds.isEmpty()) return;
 			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
-			gbUtil.publishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap,
+			String status = gbUtil.publishGradebookDataToMPS(businessService.getCurrentSiteId(), sectionUsersMap,
 					selectedAssignmentIds);
-			
+
 			target.appendJavaScript("$.unblockUI();");
 			target.appendJavaScript("location.reload();");
+			
+//			if(status == null || status.equals(gbUtil.SUCCESS) || status.equals(gbUtil.ERROR)) {
+//				target.appendJavaScript("$.unblockUI();");
+//				target.appendJavaScript("location.reload();");
+//			}
 		}
 
 		@Override

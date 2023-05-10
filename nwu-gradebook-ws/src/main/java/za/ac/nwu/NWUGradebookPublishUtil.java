@@ -78,8 +78,8 @@ public final class NWUGradebookPublishUtil {
 	private static String dbUrl, dbUsername, dbPassword;
 	private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
-	public final static String SUCCESS = "SUCCESS";
-	public final static String ERROR = "ERROR";
+	public final String SUCCESS = "SUCCESS";
+	public final String ERROR = "ERROR";
 
 	public final static String SYSTEM_LANGUAGE_TYPE_KEY = "vss.code.LANGUAGE.2";
 	public final static String CLASS_GROUP_TYPE_COMPLETE = "vss.code.CLASSGROUPTYPE.V.Complete";
@@ -94,9 +94,9 @@ public final class NWUGradebookPublishUtil {
 //			+ " FROM gb_grade_record_t gr JOIN gb_gradable_object_t go ON go.ID = gr.GRADABLE_OBJECT_ID JOIN gb_grade_map_t gm ON gm.GRADEBOOK_ID = go.GRADEBOOK_ID JOIN gb_gradebook_t g ON "
 //			+ " g.SELECTED_GRADE_MAPPING_ID = gm.ID JOIN sakai_user_id_map su ON su.USER_ID = gr.STUDENT_ID WHERE go.ID = ? AND g.NAME = ? AND go.DUE_DATE IS NOT NULL AND su.EID IN (";
 	
-	private final static String STUDENT_GRDB_ALL_MARKS_SELECT = "SELECT gr.STUDENT_ID, gr.POINTS_EARNED, gr.GRADABLE_OBJECT_ID, gr.DATE_RECORDED, go.NAME, go.POINTS_POSSIBLE, go.DUE_DATE "
-			+ " FROM gb_grade_record_t gr JOIN gb_gradable_object_t go ON go.ID = gr.GRADABLE_OBJECT_ID JOIN gb_grade_map_t gm ON gm.GRADEBOOK_ID = go.GRADEBOOK_ID JOIN gb_gradebook_t g ON "
-			+ " g.SELECTED_GRADE_MAPPING_ID = gm.ID WHERE go.ID = ? AND g.NAME = ? AND go.DUE_DATE IS NOT NULL";
+//	private final static String STUDENT_GRDB_ALL_MARKS_SELECT = "SELECT gr.STUDENT_ID, gr.POINTS_EARNED, gr.GRADABLE_OBJECT_ID, gr.DATE_RECORDED, go.NAME, go.POINTS_POSSIBLE, go.DUE_DATE "
+//			+ " FROM gb_grade_record_t gr JOIN gb_gradable_object_t go ON go.ID = gr.GRADABLE_OBJECT_ID JOIN gb_grade_map_t gm ON gm.GRADEBOOK_ID = go.GRADEBOOK_ID JOIN gb_gradebook_t g ON "
+//			+ " g.SELECTED_GRADE_MAPPING_ID = gm.ID WHERE go.ID = ? AND g.NAME = ? AND go.DUE_DATE IS NOT NULL";
 
 	private final static String NWU_GRDB_RECORDS_SELECT = "SELECT * FROM NWU_GRADEBOOK_DATA WHERE SITE_ID = ? AND STUDENT_NUMBER = ? AND GRADABLE_OBJECT_ID = ? AND MODULE = ?";
 	private final static String NWU_GRDB_RECORDS_INSERT = "INSERT INTO NWU_GRADEBOOK_DATA (SITE_ID, SITE_TITLE, MODULE, ASSESSMENT_NAME, STUDENT_NUMBER, EVAL_DESCR_ID, GRADE, "
@@ -134,12 +134,13 @@ public final class NWUGradebookPublishUtil {
 
 	/**
 	 * Get studentInfo for assignmentIds
+	 * @param sectionUsersMap 
 	 * 
 	 * @param string
 	 * @param assignmentIds
 	 * @return
 	 */
-	public Map<Long, List<NWUGradebookRecord>> getStudentInfoMap(String siteId, List<Long> assignmentIds) {
+	public Map<Long, List<NWUGradebookRecord>> getStudentInfoMap(String siteId, Map<String, List<String>> sectionUsersMap, List<Long> assignmentIds) {
 
 		openDatabaseConnection();
 
@@ -151,7 +152,7 @@ public final class NWUGradebookPublishUtil {
 		try {
 			
 			// Check if any new grades exist and create new entry in NWU_GRADEBOOK_DATA if it does
-			confirmAllStudentGrades(siteId, assignmentIds);			
+			confirmAllStudentGrades(siteId, sectionUsersMap, assignmentIds);			
 			
 			studentInfoMap = new HashMap<Long, List<NWUGradebookRecord>>();
 			for (Long assignmentId : assignmentIds) {
@@ -214,94 +215,113 @@ public final class NWUGradebookPublishUtil {
 	/**
 	 * 
 	 * @param siteId
+	 * @param sectionUsersMap 
 	 * @param assignmentIds
 	 */
-	private void confirmAllStudentGrades(String siteId, List<Long> assignmentIds) {
+	private void confirmAllStudentGrades(String siteId, Map<String, List<String>> sectionUsersMap, List<Long> assignmentIds) {
 
 		PreparedStatement studentGradebookMarksPrepStmt = null;
 		PreparedStatement nwuGradebookRecordsSelectPrepStmt = null;
 
 		ResultSet studentGradebookMarksResultSet = null;
 		ResultSet nwuGradebookRecordsSelectResultSet = null;
-		
-		// # Get all student numbers and their grades for siteId and the date recorded between start and end date
-		StringBuilder sbSql = new StringBuilder();
-		sbSql.append(STUDENT_GRDB_ALL_MARKS_SELECT);		
 
 		try {
 			String module = null, siteTitle = null, studentNumber, assessmentName = null, evalDescr = null, evalShortDescr = null;
+			List<String> studentNumbersForModule = null;
 			double grade, total = 0.0;
 			int evalDescrId, gradableObjectId;
 			LocalDateTime dueDate = null;
 			LocalDateTime recordedDate = null;
 
-			siteTitle = getSiteTitle(siteId);			
+			siteTitle = getSiteTitle(siteId);
+			
+			for (Map.Entry<String, List<String>> moduleEntry : sectionUsersMap.entrySet()) {
 
-			for (Long assignmentId : assignmentIds) {
+				module = (String) moduleEntry.getKey();
+				studentNumbersForModule = moduleEntry.getValue();
+				
+				for (Long assignmentId : assignmentIds) {
+					
+					// # Get all student numbers and their grades for siteId and the date recorded between start and end date
+					StringBuilder sbSql = new StringBuilder();
+					sbSql.append(STUDENT_GRDB_MARKS_SELECT);		
+					
+					for (int i = 0; i < studentNumbersForModule.size(); i++) {
+						if (i > 0)
+							sbSql.append(",");
+						sbSql.append(" ?");
+					}
+					sbSql.append(" ) ");
+					studentGradebookMarksPrepStmt = connection.prepareStatement(sbSql.toString());
 
-				studentGradebookMarksPrepStmt = connection.prepareStatement(sbSql.toString());
+					int counter = 1;
+					int assignmentIdInt = Long.valueOf(assignmentId).intValue();
+					studentGradebookMarksPrepStmt.setInt(counter++, assignmentIdInt);
+					studentGradebookMarksPrepStmt.setString(counter++, siteId);
+					for (int i = 0; i < studentNumbersForModule.size(); i++) {
+//						studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(studentNumbersForModule.get(i)));
+						studentGradebookMarksPrepStmt.setString(counter++, studentNumbersForModule.get(i));
+					}
+					studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
 
-				int counter = 1;
-				int assignmentIdInt = Long.valueOf(assignmentId).intValue();
-				studentGradebookMarksPrepStmt.setInt(counter++, assignmentIdInt);
-				studentGradebookMarksPrepStmt.setString(counter++, siteId);
+					if (studentGradebookMarksResultSet.next() == false) {
+						log.info("No Grades found, see error log for siteId: " + siteId + "; assignmentIds: "
+								+ assignmentIds);
+						log.info("ResultSet in empty: " + sbSql.toString() + "; studentNumbersForModule: "
+								+ studentNumbersForModule);
+					} else {
 
-				studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
+						do {						
+							studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
+							grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
+							recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
+							assessmentName = studentGradebookMarksResultSet.getString("NAME");
 
-				if (studentGradebookMarksResultSet.next() == false) {
-					log.info("No Grades found, see error log for siteId: " + siteId + "; assignmentIds: "
-							+ assignmentIds);
-				} else {
+							evalShortDescr = getEvalShortDesc(siteId, module, assignmentIdInt);
+							evalDescrId = getEvalDescId(siteId, module, assignmentIdInt, evalShortDescr);
+							
+							evalDescr = getEvaluationDesc(assessmentName);
 
-					do {						
-						studentNumber = studentGradebookMarksResultSet.getString("STUDENT_ID");
-						grade = studentGradebookMarksResultSet.getDouble("POINTS_EARNED");
-						recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
-						assessmentName = studentGradebookMarksResultSet.getString("NAME");
+							total = studentGradebookMarksResultSet.getDouble("POINTS_POSSIBLE");
+							dueDate = studentGradebookMarksResultSet.getTimestamp("DUE_DATE").toLocalDateTime();
+							gradableObjectId = studentGradebookMarksResultSet.getInt("GRADABLE_OBJECT_ID");
 
-						evalShortDescr = getEvalShortDesc(siteId, module, assignmentIdInt);
-						evalDescrId = getEvalDescId(siteId, module, assignmentIdInt, evalShortDescr);
-						
-						evalDescr = getEvaluationDesc(assessmentName);
+							// # Get matching data for students from NWU_GRADEBOOK_DATA
+							nwuGradebookRecordsSelectPrepStmt = connection.prepareStatement(NWU_GRDB_RECORDS_SELECT);
+							nwuGradebookRecordsSelectPrepStmt.setString(1, siteId);
+							nwuGradebookRecordsSelectPrepStmt.setString(2, studentNumber);
+							nwuGradebookRecordsSelectPrepStmt.setInt(3, gradableObjectId);
+							nwuGradebookRecordsSelectPrepStmt.setString(4, module);
+							// nwuGradebookRecordsSelectPrepStmt.setInt(5, evalDescrId);
+							nwuGradebookRecordsSelectResultSet = nwuGradebookRecordsSelectPrepStmt.executeQuery();
 
-						total = studentGradebookMarksResultSet.getDouble("POINTS_POSSIBLE");
-						dueDate = studentGradebookMarksResultSet.getTimestamp("DUE_DATE").toLocalDateTime();
-						gradableObjectId = studentGradebookMarksResultSet.getInt("GRADABLE_OBJECT_ID");
+							if (nwuGradebookRecordsSelectResultSet.next()) {
+								do {
+									int id = nwuGradebookRecordsSelectResultSet.getInt("ID");
+									double existingGrade = nwuGradebookRecordsSelectResultSet.getDouble("GRADE");
+									LocalDateTime existingRecordedDate = nwuGradebookRecordsSelectResultSet
+											.getTimestamp("RECORDED_DATE").toLocalDateTime();
 
-						// # Get matching data for students from NWU_GRADEBOOK_DATA
-						nwuGradebookRecordsSelectPrepStmt = connection.prepareStatement(NWU_GRDB_RECORDS_SELECT);
-						nwuGradebookRecordsSelectPrepStmt.setString(1, siteId);
-						nwuGradebookRecordsSelectPrepStmt.setString(2, studentNumber);
-						nwuGradebookRecordsSelectPrepStmt.setInt(3, gradableObjectId);
-						nwuGradebookRecordsSelectPrepStmt.setString(4, module);
-						// nwuGradebookRecordsSelectPrepStmt.setInt(5, evalDescrId);
-						nwuGradebookRecordsSelectResultSet = nwuGradebookRecordsSelectPrepStmt.executeQuery();
+									// # If the grade and recordedDate differ, update NWU_GRADEBOOK_DATA record and add to map for
+									// WS
+									if (existingGrade != grade
+											|| (existingRecordedDate != null && !existingRecordedDate.isEqual(recordedDate))) {
 
-						if (nwuGradebookRecordsSelectResultSet.next()) {
-							do {
-								int id = nwuGradebookRecordsSelectResultSet.getInt("ID");
-								double existingGrade = nwuGradebookRecordsSelectResultSet.getDouble("GRADE");
-								LocalDateTime existingRecordedDate = nwuGradebookRecordsSelectResultSet
-										.getTimestamp("RECORDED_DATE").toLocalDateTime();
+										updateNWUGradebookData(studentNumber, grade, recordedDate, id);
+									}
+								} while (nwuGradebookRecordsSelectResultSet.next());
+							} else {
 
-								// # If the grade and recordedDate differ, update NWU_GRADEBOOK_DATA record and add to map for
-								// WS
-								if (existingGrade != grade
-										|| (existingRecordedDate != null && !existingRecordedDate.isEqual(recordedDate))) {
+								// # If the record does not exist in NWU_GRADEBOOK_DATA, insert new with status STATUS_NEW
+								insertNWUGradebookData(siteId, siteTitle, studentNumber, assessmentName, grade,
+										total, evalDescrId, dueDate, recordedDate, gradableObjectId, module);
+							}
 
-									updateNWUGradebookData(studentNumber, grade, recordedDate, id);
-								}
-							} while (nwuGradebookRecordsSelectResultSet.next());
-						} else {
-
-							// # If the record does not exist in NWU_GRADEBOOK_DATA, insert new with status STATUS_NEW
-							insertNWUGradebookData(siteId, siteTitle, studentNumber, assessmentName, grade,
-									total, evalDescrId, dueDate, recordedDate, gradableObjectId, module);
-						}
-
-					} while (studentGradebookMarksResultSet.next());
+						} while (studentGradebookMarksResultSet.next());
+					}
 				}
-			}
+			}			
 			
 		} catch (Exception e) {
 			log.error("Grades could not be updated, see error log for siteId: " + siteId + "; assignmentIds: "
