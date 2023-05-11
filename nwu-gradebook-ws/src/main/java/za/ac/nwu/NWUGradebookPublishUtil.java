@@ -66,7 +66,6 @@ public final class NWUGradebookPublishUtil {
 
 	private static NWUGradebookPublishUtil INSTANCE;
 
-	private static Connection connection = null;
 	private static PropertiesHolder properties = new PropertiesHolder();
 	private static StudentAssessmentService studentAssessmentService = null;
 	private static StudentAssessmentServiceCRUD studentAssessmentServiceCRUDService = null;
@@ -141,18 +140,21 @@ public final class NWUGradebookPublishUtil {
 	 * @return
 	 */
 	public Map<Long, List<NWUGradebookRecord>> getStudentInfoMap(String siteId, Map<String, List<String>> sectionUsersMap, List<Long> assignmentIds) {
-
-		openDatabaseConnection();
-
+		
+		Connection connection = null;
 		PreparedStatement studentGBMarksInfoPrepStmt = null;
 		ResultSet studentGBMarksInfoResultSet = null;
 		List<NWUGradebookRecord> studentInfoList = null;
 		NWUGradebookRecord gradebookRecord = null;
 
 		try {
+
+			connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+			connection.setAutoCommit(true);
+			log.info("Database connection successfully made.");
 			
 			// Check if any new grades exist and create new entry in NWU_GRADEBOOK_DATA if it does
-			confirmAllStudentGrades(siteId, sectionUsersMap, assignmentIds);			
+			confirmAllStudentGrades(connection, siteId, sectionUsersMap, assignmentIds);			
 			
 			studentInfoMap = new HashMap<Long, List<NWUGradebookRecord>>();
 			for (Long assignmentId : assignmentIds) {
@@ -203,7 +205,7 @@ public final class NWUGradebookPublishUtil {
 				if (studentGBMarksInfoResultSet != null && !studentGBMarksInfoResultSet.isClosed()) {
 					studentGBMarksInfoResultSet.close();
 				}
-				closeDatabaseConnection();
+				connection.close();
 			} catch (SQLException e) {
 				log.error("Could not get student info, see error log for siteId: " + siteId + "; assignmentIds: " + assignmentIds,
 						e);
@@ -214,11 +216,12 @@ public final class NWUGradebookPublishUtil {
 
 	/**
 	 * 
+	 * @param connection 
 	 * @param siteId
 	 * @param sectionUsersMap 
 	 * @param assignmentIds
 	 */
-	private void confirmAllStudentGrades(String siteId, Map<String, List<String>> sectionUsersMap, List<Long> assignmentIds) {
+	private void confirmAllStudentGrades(Connection connection, String siteId, Map<String, List<String>> sectionUsersMap, List<Long> assignmentIds) {
 
 		PreparedStatement studentGradebookMarksPrepStmt = null;
 		PreparedStatement nwuGradebookRecordsSelectPrepStmt = null;
@@ -234,7 +237,7 @@ public final class NWUGradebookPublishUtil {
 			LocalDateTime dueDate = null;
 			LocalDateTime recordedDate = null;
 
-			siteTitle = getSiteTitle(siteId);
+			siteTitle = getSiteTitle(connection, siteId);
 			
 			for (Map.Entry<String, List<String>> moduleEntry : sectionUsersMap.entrySet()) {
 
@@ -260,7 +263,7 @@ public final class NWUGradebookPublishUtil {
 					studentGradebookMarksPrepStmt.setInt(counter++, assignmentIdInt);
 					studentGradebookMarksPrepStmt.setString(counter++, siteId);
 					for (int i = 0; i < studentNumbersForModule.size(); i++) {
-//						studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(studentNumbersForModule.get(i)));
+//						studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(connection, studentNumbersForModule.get(i)));
 						studentGradebookMarksPrepStmt.setString(counter++, studentNumbersForModule.get(i));
 					}
 					studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
@@ -278,8 +281,8 @@ public final class NWUGradebookPublishUtil {
 							recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
 							assessmentName = studentGradebookMarksResultSet.getString("NAME");
 
-							evalShortDescr = getEvalShortDesc(siteId, module, assignmentIdInt);
-							evalDescrId = getEvalDescId(siteId, module, assignmentIdInt, evalShortDescr);
+							evalShortDescr = getEvalShortDesc(connection, siteId, module, assignmentIdInt);
+							evalDescrId = getEvalDescId(connection, siteId, module, assignmentIdInt, evalShortDescr);
 							
 							evalDescr = getEvaluationDesc(assessmentName);
 
@@ -308,13 +311,13 @@ public final class NWUGradebookPublishUtil {
 									if (existingGrade != grade
 											|| (existingRecordedDate != null && !existingRecordedDate.isEqual(recordedDate))) {
 
-										updateNWUGradebookData(studentNumber, grade, recordedDate, id);
+										updateNWUGradebookData(connection, studentNumber, grade, recordedDate, id);
 									}
 								} while (nwuGradebookRecordsSelectResultSet.next());
 							} else {
 
 								// # If the record does not exist in NWU_GRADEBOOK_DATA, insert new with status STATUS_NEW
-								insertNWUGradebookData(siteId, siteTitle, studentNumber, assessmentName, grade,
+								insertNWUGradebookData(connection, siteId, siteTitle, studentNumber, assessmentName, grade,
 										total, evalDescrId, dueDate, recordedDate, gradableObjectId, module);
 							}
 
@@ -335,15 +338,12 @@ public final class NWUGradebookPublishUtil {
 				if (nwuGradebookRecordsSelectResultSet != null && !nwuGradebookRecordsSelectResultSet.isClosed()) {
 					nwuGradebookRecordsSelectResultSet.close();
 				}
-
 				if (studentGradebookMarksPrepStmt != null && !studentGradebookMarksPrepStmt.isClosed()) {
 					studentGradebookMarksPrepStmt.close();
 				}
 				if (nwuGradebookRecordsSelectPrepStmt != null && !nwuGradebookRecordsSelectPrepStmt.isClosed()) {
 					nwuGradebookRecordsSelectPrepStmt.close();
 				}
-
-				closeDatabaseConnection();
 			} catch (SQLException e) {
 				log.error("Grades could not be updated, see error log for siteId: " + siteId + "; assignmentIds: "
 						+ assignmentIds, e);
@@ -369,11 +369,10 @@ public final class NWUGradebookPublishUtil {
 			}
 		}
 
-		openDatabaseConnection();
-
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		log.info("Start Publishing NWU Gradebook Data at " + dtf.format(LocalDateTime.now()));
 
+		Connection connection = null;
 		PreparedStatement studentGradebookMarksPrepStmt = null;
 		PreparedStatement nwuGradebookRecordsSelectPrepStmt = null;
 
@@ -383,6 +382,10 @@ public final class NWUGradebookPublishUtil {
 		AcademicPeriodInfo academicPeriodInfo = null;
 
 		try {
+			connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+			connection.setAutoCommit(true);
+			log.info("Database connection successfully made.");
+			
 			String module = null, siteTitle = null, studentNumber, assessmentName = null, evalDescr = null, evalShortDescr = null, status = null;
 			List<String> studentNumbersForModule = null;
 			HashMap<Integer, Double> studentGradeMap = null;
@@ -392,7 +395,7 @@ public final class NWUGradebookPublishUtil {
 			LocalDateTime recordedDate = null;
 			List<String> moduleValues = null;
 
-			siteTitle = getSiteTitle(siteId);
+			siteTitle = getSiteTitle(connection, siteId);
 
 			LocalDate now = LocalDate.now();
 			ZoneId defaultZoneId = ZoneId.systemDefault();			
@@ -436,7 +439,7 @@ public final class NWUGradebookPublishUtil {
 					studentGradebookMarksPrepStmt.setString(counter++, siteId);
 
 					for (int i = 0; i < studentNumbersForModule.size(); i++) {
-//						studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(studentNumbersForModule.get(i)));
+//						studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(connection, studentNumbersForModule.get(i)));
 						studentGradebookMarksPrepStmt.setString(counter++, studentNumbersForModule.get(i));
 					}
 					studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
@@ -455,8 +458,8 @@ public final class NWUGradebookPublishUtil {
 							recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
 							assessmentName = studentGradebookMarksResultSet.getString("NAME");
 
-							evalShortDescr = getEvalShortDesc(siteId, module, assignmentIdInt);
-							evalDescrId = getEvalDescId(siteId, module, assignmentIdInt, evalShortDescr);
+							evalShortDescr = getEvalShortDesc(connection, siteId, module, assignmentIdInt);
+							evalDescrId = getEvalDescId(connection, siteId, module, assignmentIdInt, evalShortDescr);
 							
 							evalDescr = getEvaluationDesc(assessmentName);
 
@@ -493,7 +496,7 @@ public final class NWUGradebookPublishUtil {
 
 						// # If the INSERT was successful and studentGradeMap not empty, send student grades/data via Webservice
 						// StudentAssessmentServiceCRUD
-						publishGrades(siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
+						publishGrades(connection, siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
 								dueDate, recordedDate, startDate, endDate, academicPeriodInfo);
 					}
 				}
@@ -514,15 +517,13 @@ public final class NWUGradebookPublishUtil {
 				if (nwuGradebookRecordsSelectResultSet != null && !nwuGradebookRecordsSelectResultSet.isClosed()) {
 					nwuGradebookRecordsSelectResultSet.close();
 				}
-
 				if (studentGradebookMarksPrepStmt != null && !studentGradebookMarksPrepStmt.isClosed()) {
 					studentGradebookMarksPrepStmt.close();
 				}
 				if (nwuGradebookRecordsSelectPrepStmt != null && !nwuGradebookRecordsSelectPrepStmt.isClosed()) {
 					nwuGradebookRecordsSelectPrepStmt.close();
 				}
-
-				closeDatabaseConnection();
+				connection.close();
 			} catch (SQLException e) {
 				log.error("Grades could not be published to MPS, see error log for siteId: " + siteId + "; assignmentIds: "
 						+ assignmentIds, e);
@@ -533,10 +534,11 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection
 	 * @param studentNumber
 	 * @return
 	 */
-	private static String getUUIDFromStudentNumber(String studentNumber) {
+	private static String getUUIDFromStudentNumber(Connection connection, String studentNumber) {
 		PreparedStatement prepStmt = null;
 		try {
 			prepStmt = connection.prepareStatement(SAKAI_USER_ID_SELECT);
@@ -580,11 +582,10 @@ public final class NWUGradebookPublishUtil {
 			}
 		}
 
-		openDatabaseConnection();
-
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		log.info("Start Republishing NWU Gradebook Data at " + dtf.format(LocalDateTime.now()));
 
+		Connection connection = null;
 		PreparedStatement studentGradebookMarksPrepStmt = null;
 		PreparedStatement nwuGradebookRecordsSelectPrepStmt = null;
 
@@ -594,6 +595,10 @@ public final class NWUGradebookPublishUtil {
 		AcademicPeriodInfo academicPeriodInfo = null;
 
 		try {
+			connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+			connection.setAutoCommit(true);
+			log.info("Database connection successfully made.");
+			
 			String module = null, siteTitle = null, studentNumber, assessmentName = null, evalDescr = null, evalShortDescr = null, status = null;
 			List<String> studentNumbersForModule = null;
 			List<String> selectedStudentNumbersForModule = null;
@@ -604,7 +609,7 @@ public final class NWUGradebookPublishUtil {
 			LocalDateTime recordedDate = null;
 			List<String> moduleValues = null;
 
-			siteTitle = getSiteTitle(siteId);
+			siteTitle = getSiteTitle(connection, siteId);
 
 			LocalDate now = LocalDate.now();
 			ZoneId defaultZoneId = ZoneId.systemDefault();
@@ -651,7 +656,7 @@ public final class NWUGradebookPublishUtil {
 				studentGradebookMarksPrepStmt.setString(counter++, siteId);
 
 				for (int i = 0; i < selectedStudentNumbersForModule.size(); i++) {
-//					studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(selectedStudentNumbersForModule.get(i)));
+//					studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(connection, selectedStudentNumbersForModule.get(i)));
 					studentGradebookMarksPrepStmt.setString(counter++, selectedStudentNumbersForModule.get(i));
 				}
 				studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
@@ -670,8 +675,8 @@ public final class NWUGradebookPublishUtil {
 						recordedDate = studentGradebookMarksResultSet.getTimestamp("DATE_RECORDED").toLocalDateTime();
 						assessmentName = studentGradebookMarksResultSet.getString("NAME");
 
-						evalShortDescr = getEvalShortDesc(siteId, module, assignmentIdInt);
-						evalDescrId = getEvalDescId(siteId, module, assignmentIdInt, evalShortDescr);
+						evalShortDescr = getEvalShortDesc(connection, siteId, module, assignmentIdInt);
+						evalDescrId = getEvalDescId(connection, siteId, module, assignmentIdInt, evalShortDescr);
 						evalDescr = getEvaluationDesc(assessmentName);
 
 						total = studentGradebookMarksResultSet.getDouble("POINTS_POSSIBLE");
@@ -707,7 +712,7 @@ public final class NWUGradebookPublishUtil {
 
 					// # If the INSERT was successful and studentGradeMap not empty, send student grades/data via Webservice
 					// StudentAssessmentServiceCRUD
-					republishGrades(siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
+					republishGrades(connection, siteId, module, moduleValues, studentGradeMap, siteTitle, evalDescr, evalShortDescr, total,
 							dueDate, recordedDate, startDate, endDate, academicPeriodInfo);
 				}
 
@@ -734,8 +739,7 @@ public final class NWUGradebookPublishUtil {
 				if (nwuGradebookRecordsSelectPrepStmt != null && !nwuGradebookRecordsSelectPrepStmt.isClosed()) {
 					nwuGradebookRecordsSelectPrepStmt.close();
 				}
-
-				closeDatabaseConnection();
+				connection.close();
 			} catch (SQLException e) {
 				log.error("Grades could not be republished to MPS, see error log for siteId: " + siteId + "; assignmentId: "
 						+ assignmentId, e);
@@ -783,6 +787,7 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection 
 	 * @param siteId
 	 * @param module
 	 * @param moduleValues
@@ -797,7 +802,7 @@ public final class NWUGradebookPublishUtil {
 	 * @param startDate
 	 * @param academicPeriodInfo
 	 */
-	private static void publishGrades(String siteId, String module, List<String> moduleValues,
+	private static void publishGrades(Connection connection, String siteId, String module, List<String> moduleValues,
 			HashMap<Integer, Double> studentGradeMap, String siteTitle, String evalDescr, String evalShortDescr, double total,
 			LocalDateTime dueDate, LocalDateTime recordedDate, Date startDate, Date endDate, AcademicPeriodInfo academicPeriodInfo) {
 
@@ -871,10 +876,10 @@ public final class NWUGradebookPublishUtil {
 				log.error("Response from publishGrades is empty for siteId: " + siteId + "; siteTitle: " + siteTitle
 						+ "; module: " + module + "; evalDescr: " + evalDescr + "; studentGradeMap: " + studentGradeMap);
 
-				updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL,
+				updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL,
 						"MaintainStudentResponse is null");
 			} else {
-				updateNWUGradebookRecords(siteId, module, maintainStudentResponse);
+				updateNWUGradebookRecords(connection, siteId, module, maintainStudentResponse);
 			}
 
 		} catch (DoesNotExistException | InvalidParameterException | MissingParameterException | OperationFailedException
@@ -882,12 +887,12 @@ public final class NWUGradebookPublishUtil {
 			log.error("Grades could not be published, see error log for siteTitle: " + siteTitle + "; evalDescr: " + evalDescr,
 					e);
 
-			updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
+			updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
 		} catch (Exception e) {
 			log.error("Grades could not be published, see error log for siteTitle: " + siteTitle + "; evalDescr: " + evalDescr,
 					e);
 
-			updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
+			updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
 		}
 
 		log.info("publishGrades end");
@@ -976,6 +981,7 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection 
 	 * @param siteId
 	 * @param module
 	 * @param moduleValues
@@ -990,7 +996,7 @@ public final class NWUGradebookPublishUtil {
 	 * @param startDate
 	 * @param academicPeriodInfo
 	 */
-	private void republishGrades(String siteId, String module, List<String> moduleValues, HashMap<Integer, Double> studentGradeMap,
+	private void republishGrades(Connection connection, String siteId, String module, List<String> moduleValues, HashMap<Integer, Double> studentGradeMap,
 			String siteTitle, String evalDescr, String evalShortDescr, double total, LocalDateTime dueDate,
 			LocalDateTime recordedDate, Date startDate, Date endDate, AcademicPeriodInfo academicPeriodInfo) {
 		
@@ -1064,10 +1070,10 @@ public final class NWUGradebookPublishUtil {
 				log.error("Response from republishGrades is empty for siteId: " + siteId + "; siteTitle: " + siteTitle
 						+ "; module: " + module + "; evalDescr: " + evalDescr + "; studentGradeMap: " + studentGradeMap);
 
-				updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL,
+				updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL,
 						"MaintainStudentResponse is null");
 			} else {
-				updateNWUGradebookRecords(siteId, module, maintainStudentResponse);
+				updateNWUGradebookRecords(connection, siteId, module, maintainStudentResponse);
 			}
 
 		} catch (DoesNotExistException | InvalidParameterException | MissingParameterException | OperationFailedException
@@ -1075,23 +1081,24 @@ public final class NWUGradebookPublishUtil {
 			log.error("Grades could not be republished, see error log for siteTitle: " + siteTitle + "; evalDescr: " + evalDescr,
 					e);
 
-			updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
+			updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
 		} catch (Exception e) {
 			log.error("Grades could not be republished, see error log for siteTitle: " + siteTitle + "; evalDescr: " + evalDescr,
 					e);
 
-			updateNWUGradebookRecordsWithStatus(siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
+			updateNWUGradebookRecordsWithStatus(connection, siteId, module, studentGradeMap, NWUGradebookRecord.STATUS_FAIL, e.getMessage());
 		}
 
 		log.info("republishGrades end");
 	}
 
 	/**
+	 * @param connection 
 	 * @param siteId
 	 * @param module
 	 * @param maintainStudentResponse
 	 */
-	private static void updateNWUGradebookRecords(String siteId, String module, HashMap<String, String> maintainStudentResponse) {
+	private static void updateNWUGradebookRecords(Connection connection, String siteId, String module, HashMap<String, String> maintainStudentResponse) {
 
 		PreparedStatement nwuGradebookRecordsUpdateStatusPrepStmt = null;
 
@@ -1147,13 +1154,14 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection 
 	 * @param siteId
 	 * @param module
 	 * @param studentGradeMap
 	 * @param status
 	 * @param description
 	 */
-	private static void updateNWUGradebookRecordsWithStatus(String siteId, String module, HashMap<Integer, Double> studentGradeMap,
+	private static void updateNWUGradebookRecordsWithStatus(Connection connection, String siteId, String module, HashMap<Integer, Double> studentGradeMap,
 			String status, String description) {
 		PreparedStatement nwuGradebookRecordsUpdateStatusPrepStmt = null;
 		Integer studentNumber = null;
@@ -1236,13 +1244,13 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection
 	 * @param studentNumber
-	 * @param studentGradeMap
 	 * @param grade
 	 * @param recordedDate
 	 * @param id
 	 */
-	private static void updateNWUGradebookData(String studentNumber, HashMap<Integer, Double> studentGradeMap, double grade,
+	private static void updateNWUGradebookData(Connection connection, String studentNumber, HashMap<Integer, Double> studentGradeMap, double grade,
 			LocalDateTime recordedDate, int id) {
 
 		PreparedStatement nwuGradebookRecordsUpdatePrepStmt = null;
@@ -1278,12 +1286,13 @@ public final class NWUGradebookPublishUtil {
 	}
 	
 	/**
+	 * @param connection
 	 * @param studentNumber
 	 * @param grade
 	 * @param recordedDate
 	 * @param id
 	 */
-	private static void updateNWUGradebookData(String studentNumber, double grade,
+	private static void updateNWUGradebookData(Connection connection, String studentNumber, double grade,
 			LocalDateTime recordedDate, int id) {
 
 		PreparedStatement nwuGradebookRecordsUpdatePrepStmt = null;
@@ -1312,6 +1321,7 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection
 	 * @param siteId
 	 * @param siteTitle
 	 * @param studentNumber
@@ -1325,7 +1335,7 @@ public final class NWUGradebookPublishUtil {
 	 * @param gradableObjectId
 	 * @param module
 	 */
-	private static void insertNWUGradebookData(String siteId, String siteTitle, String studentNumber, String assessmentName,
+	private static void insertNWUGradebookData(Connection connection, String siteId, String siteTitle, String studentNumber, String assessmentName,
 			HashMap<Integer, Double> studentGradeMap, double grade, double total, int evalDescrId, LocalDateTime dueDate,
 			LocalDateTime recordedDate, int gradableObjectId, String module) {
 
@@ -1374,6 +1384,7 @@ public final class NWUGradebookPublishUtil {
 	}
 	
 	/**
+	 * @param connection
 	 * @param siteId
 	 * @param siteTitle
 	 * @param studentNumber
@@ -1386,7 +1397,7 @@ public final class NWUGradebookPublishUtil {
 	 * @param gradableObjectId
 	 * @param module
 	 */
-	private static void insertNWUGradebookData(String siteId, String siteTitle, String studentNumber, String assessmentName,
+	private static void insertNWUGradebookData(Connection connection, String siteId, String siteTitle, String studentNumber, String assessmentName,
 			double grade, double total, int evalDescrId, LocalDateTime dueDate,
 			LocalDateTime recordedDate, int gradableObjectId, String module) {
 
@@ -1541,40 +1552,12 @@ public final class NWUGradebookPublishUtil {
 	 }
 
 	/**
-	 * Opens Database connection
-	 * 
-	 * @throws SQLException
-	 */
-	private static void openDatabaseConnection() {
-		try {
-			connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-			connection.setAutoCommit(true);
-			log.info("Database connection successfully made.");
-
-		} catch (Exception e) {
-			log.error("Could not get student info. See error log: " + e);
-		}
-	}
-
-	/**
-	 * Closes Database connection
-	 */
-	private static void closeDatabaseConnection() {
-		if (connection != null) {
-			try {
-				connection.close();
-			} catch (SQLException e) {
-				log.error("Could not close Database connection. See error log: " + e);
-			}
-		}
-	}
-
-	/**
+	 * @param connection
 	 * @param siteId
 	 * @return
 	 * @throws SQLException
 	 */
-	private static String getSiteTitle(String siteId) throws SQLException {
+	private static String getSiteTitle(Connection connection, String siteId) throws SQLException {
 
 		PreparedStatement siteTitlePrepStmt = connection.prepareStatement(SITE_TITLE_SELECT);
 		siteTitlePrepStmt.setString(1, siteId);
@@ -1586,12 +1569,13 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
+	 * @param connection
 	 * @param siteId
 	 * @param module
 	 * @param assignmentId 
 	 * @return
 	 */
-	private static String getEvalShortDesc(String siteId, String module, int assignmentId) {
+	private static String getEvalShortDesc(Connection connection, String siteId, String module, int assignmentId) {
 		String evalShortDesc = null;
 		PreparedStatement prepStmt = null;
 		try {
@@ -1616,13 +1600,13 @@ public final class NWUGradebookPublishUtil {
 		}
 		// if it does not exist, generate one
 		if (evalShortDesc == null) {
-			evalShortDesc = generateEvalShortDesc(siteId, module, assignmentId);
+			evalShortDesc = generateEvalShortDesc(connection, siteId, module, assignmentId);
 		}
 		return evalShortDesc;
 	}
 
 	/**
-	 * 
+	 * @param connection
 	 * @param siteId
 	 * @param module
 	 * @param assignmentId
@@ -1630,7 +1614,7 @@ public final class NWUGradebookPublishUtil {
 	 * @return
 	 * @throws SQLException
 	 */
-	private static int getEvalDescId(String siteId, String module, int assignmentId, String evalDescr) throws SQLException {
+	private static int getEvalDescId(Connection connection, String siteId, String module, int assignmentId, String evalDescr) throws SQLException {
 		PreparedStatement prepStmt = null;
 		try {
 			prepStmt = connection.prepareStatement(NWU_EVAL_DESCRID_SELECT);
@@ -1657,13 +1641,13 @@ public final class NWUGradebookPublishUtil {
 	}
 
 	/**
-	 * 
+	 * @param connection
 	 * @param siteId
 	 * @param module
 	 * @param assignmentId
 	 * @return
 	 */
-	private static String generateEvalShortDesc(String siteId, String module, int assignmentId) {
+	private static String generateEvalShortDesc(Connection connection, String siteId, String module, int assignmentId) {
 		String randomStr = RandomStringUtils.random(5, true, true);
 		PreparedStatement prepStmt = null;
 		try {
