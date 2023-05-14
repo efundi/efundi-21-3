@@ -1,5 +1,6 @@
 package org.sakaiproject.gradebookng.tool.pages;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.sakaiproject.gradebookng.business.util.AssignmentDataProvider;
 import org.sakaiproject.gradebookng.tool.component.GbAjaxButton;
 import org.sakaiproject.gradebookng.tool.model.GbAssignmentData;
 import org.sakaiproject.gradebookng.tool.model.GbModalWindow;
+import org.sakaiproject.gradebookng.tool.model.GbStudentInfoData;
 import org.sakaiproject.gradebookng.tool.panels.NWUMPSStudentInfoPanel;
 import org.sakaiproject.portal.util.PortalUtils;
 import org.sakaiproject.service.gradebook.shared.Assignment;
@@ -159,10 +161,7 @@ public class NWUMPSPage extends BasePage {
 			final List<Assignment> assignments = businessService.getGradebookAssignments();
 			List<Long> assignmentIds = assignments.stream().map(Assignment::getId).collect(Collectors.toList());
 			
-			Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();
-			
-			Map<Long, List<NWUGradebookRecord>> studentInfoMap = gbUtil.getStudentInfoMap(businessService.getCurrentSiteId(), sectionUsersMap,
-					assignmentIds);
+			Map<Long, List<NWUGradebookRecord>> studentInfoMap = gbUtil.getStudentInfoMap(businessService.getCurrentSiteId(), assignmentIds);
 
 			AssignmentDataProvider assignmentDataProvider = new AssignmentDataProvider(assignments, studentInfoMap);
 			AjaxFallbackDefaultDataTable assignmentsTable = new AjaxFallbackDefaultDataTable<>("assignments-table", getColumns(),
@@ -194,8 +193,14 @@ public class NWUMPSPage extends BasePage {
 		columns.add(new AbstractColumn<GbAssignmentData, String>(Model.of("Detail from MPS")) {
 			@Override
 			public void populateItem(Item<ICellPopulator<GbAssignmentData>> cellItem, String componentId,
-					IModel<GbAssignmentData> rowModel) {
-				cellItem.add(new LinkPanel(componentId, rowModel));
+					IModel<GbAssignmentData> rowModel) {				
+				GbAssignmentData rowData = (GbAssignmentData) rowModel.getObject();
+				if(rowData.getStudentInfoDataList() != null && !rowData.getStudentInfoDataList().isEmpty()) {					
+					cellItem.add(new LinkPanel(componentId, rowModel, true));
+				} else {			
+					cellItem.add(new LinkPanel(componentId, rowModel, false));
+				}
+				
 				cellItem.add(new AttributeModifier("style", "display: table-cell; text-align: center;"));
 			}
 		});
@@ -293,23 +298,53 @@ public class NWUMPSPage extends BasePage {
 		 * @param model
 		 *            model for contact
 		 */
-		public LinkPanel(String id, IModel<GbAssignmentData> model) {
+		public LinkPanel(String id, IModel<GbAssignmentData> model, boolean disable) {
 			super(id, model);
-			add(new AjaxLink<Void>("assignment-info") {
-				private static final long serialVersionUID = 1L;
-
+			
+			AjaxLink ajaxLink = new AjaxLink<Void>("assignment-info") {
+				
 				@Override
 				public void onClick(AjaxRequestTarget target) {
+					GbAssignmentData assignmentData = (GbAssignmentData) getParent().getDefaultModelObject();
+					
+					Map<String, List<String>> sectionUsersMap = businessService.getSectionUsersForCurrentSite();			
+					List<NWUGradebookRecord> studentInfoList = gbUtil.getStudentInfoList(businessService.getCurrentSiteId(), sectionUsersMap,
+							Long.valueOf(assignmentData.getAssignmentId()));
+					
+					assignmentData.setStudentInfoDataList(convertToGbStudentInfoDataList(studentInfoList));					
+					
 					// System.out.println((GbAssignmentData) getParent().getDefaultModelObject());
-					NWUMPSStudentInfoPanel studentInfoPanel = new NWUMPSStudentInfoPanel("main-panel", gbUtil,
-							(GbAssignmentData) getParent().getDefaultModelObject());
+					NWUMPSStudentInfoPanel studentInfoPanel = new NWUMPSStudentInfoPanel("main-panel", gbUtil, assignmentData);
 					studentInfoPanel.setOutputMarkupId(true);
 					current.replaceWith(studentInfoPanel);
 					target.add(studentInfoPanel);
 					current = studentInfoPanel;
 					// setResponsePage(new NWUMPSStudentInfoPanel();
 				}
-			});
+			};
+			
+			ajaxLink.setEnabled(disable);
+			
+			add(ajaxLink);
+		}
+		
+		/**
+		 * 
+		 * @param gradebookRecordList
+		 * @return
+		 */
+		private List<GbStudentInfoData> convertToGbStudentInfoDataList(List<NWUGradebookRecord> gradebookRecordList) {
+			List<GbStudentInfoData> studentInfoDataList = new ArrayList<GbStudentInfoData>();
+			GbStudentInfoData studentInfoData = null;
+			for (NWUGradebookRecord nwuGradebookRecord : gradebookRecordList) {
+				studentInfoData = new GbStudentInfoData();
+				studentInfoData.setUserId(nwuGradebookRecord.getStudentNumber());
+				studentInfoData.setStatus(nwuGradebookRecord.getStatus());
+				studentInfoData.setErrorMessage(nwuGradebookRecord.getDescription());
+				studentInfoData.setRetryCount(nwuGradebookRecord.getRetryCount());			
+				studentInfoDataList.add(studentInfoData);
+			}
+			return studentInfoDataList;
 		}
 	}
 
