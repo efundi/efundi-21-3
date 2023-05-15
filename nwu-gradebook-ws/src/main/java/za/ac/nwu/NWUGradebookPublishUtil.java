@@ -339,8 +339,7 @@ public final class NWUGradebookPublishUtil {
 				studentGradebookMarksPrepStmt.setInt(counter++, assignmentIdInt);
 				studentGradebookMarksPrepStmt.setString(counter++, siteId);
 				for (int i = 0; i < studentNumbersForModule.size(); i++) {
-					// studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(connection,
-					// studentNumbersForModule.get(i)));
+//					studentGradebookMarksPrepStmt.setString(counter++, getUUIDFromStudentNumber(connection, studentNumbersForModule.get(i)));
 					studentGradebookMarksPrepStmt.setString(counter++, studentNumbersForModule.get(i));
 				}
 				studentGradebookMarksResultSet = studentGradebookMarksPrepStmt.executeQuery();
@@ -547,15 +546,13 @@ public final class NWUGradebookPublishUtil {
 							// nwuGradebookRecordsSelectPrepStmt.setInt(5, evalDescrId);
 							nwuGradebookRecordsSelectResultSet = nwuGradebookRecordsSelectPrepStmt.executeQuery();
 							
-							if (nwuGradebookRecordsSelectResultSet.next()) {
-								status = nwuGradebookRecordsSelectResultSet.getString("STATUS");
-								if(status != null && (status.equals(NWUGradebookRecord.STATUS_NEW) || status.equals(NWUGradebookRecord.STATUS_UPDATED))) {
-									studentGradeMap.put(Integer.parseInt(studentNumber), grade);
+							if (!nwuGradebookRecordsSelectResultSet.next()) {
 
-									log.debug("Inserted/Updated NWU_GRADEBOOK_DATA - siteId = " + siteId + ", module = " + module + ", assessmentName = "
-											+ assessmentName + ", studentNumber = " + studentNumber + ", grade = " + grade);
-								}
-							}
+								// # If the record does not exist in NWU_GRADEBOOK_DATA, insert new with status STATUS_NEW
+								insertNWUGradebookData(connection, siteId, siteTitle, studentNumber, assessmentName,
+										studentGradeMap, grade, total, evalDescrId, dueDate,
+										recordedDate, gradableObjectId, module);								
+							} 
 							
 						} while (studentGradebookMarksResultSet.next());
 					}
