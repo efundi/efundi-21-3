@@ -160,8 +160,8 @@ public class NWUMPSStudentInfoPanel extends BasePanel {
 			GbStudentInfoData rowData = (GbStudentInfoData) model.getObject();
 			
 			//Mark checkbox "disabled" if status is "SUCCESS" and repubish retrycount is 5 or more
-			if(rowData.getStatus() != null && rowData.getStatus().equals(NWUGradebookRecord.STATUS_SUCCESS) && 
-					Integer.compare(rowData.getRetryCount(), Integer.parseInt(serverConfigService.getString(REPUBLISH_MAX_RETRY, "5"))) >= 0) {
+			if(rowData.getStatus() != null && (rowData.getStatus().equals(NWUGradebookRecord.STATUS_SUCCESS) ||
+					Integer.compare(rowData.getRetryCount(), Integer.parseInt(serverConfigService.getString(REPUBLISH_MAX_RETRY, "5"))) >= 0)) {
 				field.add(new AttributeAppender("disabled", "disabled"));
 			}
 			add(field);
